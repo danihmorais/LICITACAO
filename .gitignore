@@ -1,0 +1,8 @@
+dist/
+build/
+Documentos_Gerados/
+__pycache__/
+*.pyc
+dados_salvos.json
+app.log
+ia_requests.log
