@@ -1,5 +1,5 @@
 import json
-from providers.openai_provider import gerar_texto_openai
+from providers.openrouter_provider import gerar_texto_openrouter
 from providers.gemini_provider import gerar_texto_gemini
 from providers.utils import extrair_json
 
@@ -128,8 +128,8 @@ def processar_dados_ia(dados_usuario, api_key, provider, meepp_exclusivo, etapa)
         etapa
     )
 
-    if provider == "openai":
-        resposta = gerar_texto_openai(prompt, api_key)
+    if provider == "openrouter":
+        resposta = gerar_texto_openrouter(prompt, api_key)
     elif provider == "gemini":
         resposta = gerar_texto_gemini(prompt, api_key)
     else:
