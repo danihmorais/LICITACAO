@@ -4,6 +4,7 @@ import urllib.request
 import urllib.error
 import json
 import logging
+import config
 
 log_dir = os.path.join(os.getenv("LOCALAPPDATA"), "MeuApp")
 os.makedirs(log_dir, exist_ok=True)
@@ -16,7 +17,9 @@ handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s -
 if not logger.handlers:
     logger.addHandler(handler)
 
-def gerar_texto_openrouter(prompt, api_key, model="gpt-4o-mini"):
+def gerar_texto_openrouter(prompt, api_key, model=None):
+    if model is None:
+        model = config.MODEL_OPENROUTER
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",

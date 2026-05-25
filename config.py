@@ -16,7 +16,7 @@ ARQUIVO_DADOS = os.path.join(EXECUTABLE_DIR, "dados_salvos.json")
 ARQUIVO_SETTINGS_EXTERNO = os.path.join(EXECUTABLE_DIR, "settings.json")
 ARQUIVO_SETTINGS_BUNDLED = os.path.join(BASE_DIR, "settings.json")
 
-MODEL_OPENAI = "gpt-4o-mini"
+MODEL_OPENROUTER = "openrouter/free"
 MODEL_GEMINI = "gemini-2.5-flash"
 
 PROVEDORES_IA = {
