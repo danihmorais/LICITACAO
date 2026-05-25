@@ -20,3 +20,10 @@ O ambiente de desenvolvimento requer o Python instalado e as seguintes bibliotec
 
 ```cmd
 pip install -r requirements.txt
+
+
+
+Este projeto NÃO é open source.
+
+Uso pessoal permitido.
+Uso comercial, redistribuição e modificação exigem licença comercial.
