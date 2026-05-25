@@ -20,11 +20,11 @@ MODEL_OPENAI = "gpt-4o-mini"
 MODEL_GEMINI = "gemini-2.5-flash"
 
 PROVEDORES_IA = {
-    "openai": "ChatGPT (OpenAI)",
+    "openrouter": "OpenRouter",
     "gemini": "Gemini (Google)"
 }
 
-DEFAULT_PROVIDER = "openai"
+DEFAULT_PROVIDER = "gemini"
 
 BASE_FILES = [
     "DFD - BASE.docx",

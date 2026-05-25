@@ -238,9 +238,9 @@ class AppController:
         chave_limpa = chave.strip()
         logging.info(f"Iniciando validação de chave na API para o provedor: {provedor}")
 
-        if provedor == "openai":
-            url = "https://api.openai.com/v1/models"
-            req = urllib.request.Request(url, headers={"Authorization": f"Bearer {chave_limpa}"})
+        if provedor == "openrouter":
+            url = "https://openrouter.ai/api/v1/models"
+            req = urllib.request.Request(url)
         elif provedor == "gemini":
             url = f"https://generativelanguage.googleapis.com/v1beta/models?key={chave_limpa}"
             req = urllib.request.Request(url)

@@ -244,11 +244,11 @@ class LoginView(ctk.CTkFrame):
 
     def mostrar_ajuda(self):
         provider = self.provedor_var.get()
-        if provider == "openai":
-            titulo = "Obter chave da OpenAI"
-            url = "https://platform.openai.com/api-keys"
+        if provider == "openrouter":
+            titulo = "Obter chave da OpenRouter"
+            url = "https://openrouter.ai/settings/keys"
             texto = (
-                "1. Faça login na plataforma OpenAI.\n"
+                "1. Faça login na plataforma OpenRouter.\n"
                 "2. Acesse a seção API Keys.\n"
                 "3. Gere uma nova chave secreta.\n"
                 "4. Copie e cole no sistema."
