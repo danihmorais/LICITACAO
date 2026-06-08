@@ -1,5 +1,5 @@
 import React from "react";
-import { open } from "@tauri-apps/api/dialog";
+import { open } from "@tauri-apps/plugin-dialog";
 
 export default function Step5({ dados, atualizarDados }: any) {
   const handleAnexarImagem = async () => {
@@ -25,7 +25,6 @@ export default function Step5({ dados, atualizarDados }: any) {
     atualizarDados({ vigenciaNum: dados.vigenciaNum + 1 });
   };
 
-  // Verifica se existe algum item cadastrado com o campo "lote" preenchido
   const temLote = dados.itens && dados.itens.some((item: any) => item.lote && item.lote.toString().trim() !== "");
   const faltaDotacao = dados.dotacao.trim() === "" && !dados.caminhoImagemDotacao;
 

@@ -63,7 +63,7 @@ def processar():
                 try:
                     itens = json.loads(itens_json) if isinstance(itens_json, str) else itens_json
                     colunas_remover = {"Vlr Unit. (R$)", "Vlr Unit", "Valor Unitário", "Valor Unitario", "Total", "Valor Total"}
-                    modificacoes["{{ITENS_SEMVALOR}}"] = JSON.dumps([{k: v for k, v in item.items() if k not in colunas_remover} for item in itens], ensure_ascii=False)
+                    modificacoes["{{ITENS_SEMVALOR}}"] = json.dumps([{k: v for k, v in item.items() if k not in colunas_remover} for item in itens], ensure_ascii=False)
                 except Exception:
                     modificacoes["{{ITENS_SEMVALOR}}"] = ""
 

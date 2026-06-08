@@ -1,5 +1,5 @@
 import { getVersion } from "@tauri-apps/api/app";
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 
 const REPO_URL = "https://api.github.com/repos/danihmorais/PRONTUARIO/releases/latest";
 

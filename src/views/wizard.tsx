@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 import Step1 from "./steps/step1";
 import Step2 from "./steps/step2";
 import Step3 from "./steps/step3";
 import Step4 from "./steps/step4";
 import Step5 from "./steps/step5";
+import { mapearDadosWizard } from "../utils/mapearDados";
 
 export default function Wizard() {
   const [etapaAtual, setEtapaAtual] = useState(0);
@@ -59,7 +60,6 @@ export default function Wizard() {
       case 3:
         return dados.gestores.length > 0 && dados.fiscais.length > 0;
       case 4:
-        // Validações condicionais do passo 5
         const criterioValido = (dados.criterio === "ITEM") || ((dados.criterio === "GLOBAL" || dados.criterio === "LOTE") && dados.motivoCriterio.trim() !== "");
         const modalidadeValida = dados.modalidade === "PREGAO_ELETRONICO" || dados.motivoModalidade.trim() !== "";
         const pacValido = dados.pac === "SIM" || dados.motivoPac.trim() !== "";
@@ -88,15 +88,15 @@ export default function Wizard() {
   const confeccionarDocumentos = async () => {
     setCarregando(true);
     try {
-      await invoke("gerar_documentos", { dados });
+      const dadosMapeados = mapearDadosWizard(dados);
+      await invoke("gerar_documentos", { dados: dadosMapeados }); // Envia os dados mapeados
       alert("Documentos gerados com sucesso!");
     } catch (erro) {
       alert("Erro na geração: " + erro);
     } finally {
       setCarregando(false);
-      setEtapaAtual(0);
     }
-  };
+};
 
   const renderizarEtapa = () => {
     switch (etapaAtual) {
