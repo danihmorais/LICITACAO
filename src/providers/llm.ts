@@ -1,0 +1,63 @@
+export async function gerarTextoGemini(prompt: string, apiKey: string, model: string = "gemini-1.5-flash"): Promise<any> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.3,
+        responseMimeType: "application/json"
+      }
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    throw new Error(`Erro na API do Gemini (HTTP ${response.status}): ${errorData}`);
+  }
+
+  const data = await response.json();
+  
+  try {
+    const textoFinal = data.candidates[0].content.parts[0].text;
+    return JSON.parse(textoFinal);
+  } catch (err) {
+    throw new Error("Resposta inesperada da API do Gemini. Estrutura de dados ou JSON inválidos.");
+  }
+}
+
+export async function gerarTextoOpenRouter(prompt: string, apiKey: string, model: string = "openai/gpt-4o"): Promise<any> {
+  const url = "https://openrouter.ai/api/v1/chat/completions";
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: model,
+      temperature: 0.3,
+      response_format: { type: "json_object" },
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    throw new Error(`Erro na API do OpenRouter (HTTP ${response.status}): ${errorData}`);
+  }
+
+  const data = await response.json();
+
+  try {
+    const textoFinal = data.choices[0].message.content;
+    return JSON.parse(textoFinal);
+  } catch (err) {
+    throw new Error("Resposta inesperada da API do OpenRouter. Estrutura de dados ou JSON inválidos.");
+  }
+}

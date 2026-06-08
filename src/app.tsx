@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 import logo from "./assets/logo.png"; // Certifique-se que o logo está na pasta assets
 
 export default function App() {
@@ -12,11 +12,8 @@ export default function App() {
     setCarregando(true);
     
     try {
-      // Aqui o React vai chamar uma função no Rust (que você criará no main.rs)
-      // para salvar a chave e validar.
       await invoke("salvar_config_ia", { provedor, chave: chaveApi });
       console.log("Login feito com sucesso!");
-      // Redirecionar para a próxima tela do Licita.AI aqui
     } catch (error) {
       console.error("Erro ao configurar API:", error);
       alert("Erro ao validar a chave de API.");
@@ -29,7 +26,6 @@ export default function App() {
     const url = provedor === "openrouter" 
       ? "https://openrouter.ai/settings/keys" 
       : "https://aistudio.google.com/app/apikey";
-    // Invoca o Rust para abrir o link no navegador padrão do PC
     invoke("abrir_link", { url }); 
   };
 
@@ -37,14 +33,12 @@ export default function App() {
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "#F3F4F6", fontFamily: "sans-serif" }}>
       <div style={{ background: "#FFFFFF", padding: "40px", borderRadius: "24px", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", width: "100%", maxWidth: "600px", textAlign: "center" }}>
         
-        {/* Header equivalente ao _build_header do Python */}
         <img src={logo} alt="Licita.AI Logo" style={{ width: "90px", marginBottom: "16px" }} />
         <h1 style={{ margin: "0 0 8px 0", fontSize: "34px", color: "#111827" }}>Licita.AI</h1>
         <p style={{ color: "#6B7280", marginBottom: "35px" }}>
           Automatize a criação de DFD, ETP e TR com Inteligência Artificial
         </p>
 
-        {/* Provider Section equivalente ao _build_provider_section */}
         <h3 style={{ fontSize: "16px", color: "#1F2937", marginBottom: "16px" }}>Selecione o motor de Inteligência Artificial</h3>
         <div style={{ display: "flex", justifyContent: "center", gap: "24px", marginBottom: "35px" }}>
           <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
@@ -57,7 +51,6 @@ export default function App() {
           </label>
         </div>
 
-        {/* API Section equivalente ao _build_api_section */}
         <form onSubmit={fazerLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div style={{ textAlign: "left" }}>
             <label style={{ fontWeight: "bold", fontSize: "14px", color: "#1F2937", display: "block", marginBottom: "8px" }}>Chave de API</label>
@@ -75,13 +68,11 @@ export default function App() {
             Não tem uma chave? Saiba como obter gratuitamente.
           </button>
 
-          {/* Action Button equivalente ao _build_action_button */}
           <button type="submit" disabled={carregando} style={{ marginTop: "24px", padding: "16px", backgroundColor: "#2563EB", color: "white", border: "none", borderRadius: "14px", fontSize: "16px", fontWeight: "bold", cursor: carregando ? "not-allowed" : "pointer" }}>
             {carregando ? "Conectando..." : "Acessar Sistema"}
           </button>
         </form>
 
-        {/* Footer */}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontSize: "12px", color: "#6B7280" }}>
           <span style={{ color: "#22C55E", fontWeight: "bold" }}>CONECTADO À API</span>
           <span>@danih.morais</span>
