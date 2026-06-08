@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import Step1 from "./Step1";
-import Step2 from "./Step2";
+import Step1 from "./steps/step1";
+import Step2 from "./steps/step2";
+import Step3 from "./steps/step3";
+import Step4 from "./steps/step4";
+import Step5 from "./steps/step5";
 
 export default function Wizard() {
   const [etapaAtual, setEtapaAtual] = useState(0);
@@ -36,6 +39,38 @@ export default function Wizard() {
     setDados((prev) => ({ ...prev, ...novosDados }));
   };
 
+  useEffect(() => {
+    const temLote = dados.itens.some((item: any) => item.lote && item.lote.toString().trim() !== "");
+    if (temLote && dados.criterio !== "LOTE") {
+      atualizarDados({ criterio: "LOTE" });
+    } else if (!temLote && dados.criterio !== "ITEM" && dados.criterio !== "GLOBAL") {
+      atualizarDados({ criterio: "ITEM" });
+    }
+  }, [dados.itens]);
+
+  const validarEtapa = () => {
+    switch (etapaAtual) {
+      case 0:
+        return dados.objeto.trim() !== "" && dados.necessidade.trim() !== "" && dados.itens.length > 0;
+      case 1:
+        return dados.execucao.trim() !== "";
+      case 2:
+        return dados.secretarias.length > 0;
+      case 3:
+        return dados.gestores.length > 0 && dados.fiscais.length > 0;
+      case 4:
+        // Validações condicionais do passo 5
+        const criterioValido = (dados.criterio === "ITEM") || ((dados.criterio === "GLOBAL" || dados.criterio === "LOTE") && dados.motivoCriterio.trim() !== "");
+        const modalidadeValida = dados.modalidade === "PREGAO_ELETRONICO" || dados.motivoModalidade.trim() !== "";
+        const pacValido = dados.pac === "SIM" || dados.motivoPac.trim() !== "";
+        const dotacaoValida = dados.dotacao.trim() !== "" || !!dados.caminhoImagemDotacao;
+        
+        return dados.instrumento !== "" && criterioValido && modalidadeValida && pacValido && dotacaoValida;
+      default:
+        return true;
+    }
+  };
+
   const avancar = () => {
     if (etapaAtual < 4) {
       setEtapaAtual(etapaAtual + 1);
@@ -67,6 +102,9 @@ export default function Wizard() {
     switch (etapaAtual) {
       case 0: return <Step1 dados={dados} atualizarDados={atualizarDados} />;
       case 1: return <Step2 dados={dados} atualizarDados={atualizarDados} />;
+      case 2: return <Step3 dados={dados} atualizarDados={atualizarDados} />;
+      case 3: return <Step4 dados={dados} atualizarDados={atualizarDados} />;
+      case 4: return <Step5 dados={dados} atualizarDados={atualizarDados} />;
       default: return <div style={{ padding: "2rem" }}>Próximas etapas na sequência...</div>;
     }
   };
@@ -84,6 +122,8 @@ export default function Wizard() {
       </div>
     );
   }
+
+  const podeAvancar = validarEtapa();
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", backgroundColor: "#F3F4F6" }}>
@@ -120,8 +160,9 @@ export default function Wizard() {
           Voltar
         </button>
         <button 
-          onClick={avancar} 
-          style={{ width: "140px", height: "44px", borderRadius: "12px", border: "none", background: etapaAtual === 4 ? "#22C55E" : "#2563EB", color: "white", fontWeight: "bold", fontSize: "14px", cursor: "pointer" }}
+          onClick={avancar}
+          disabled={!podeAvancar}
+          style={{ width: "140px", height: "44px", borderRadius: "12px", border: "none", background: !podeAvancar ? "#9CA3AF" : (etapaAtual === 4 ? "#22C55E" : "#2563EB"), color: "white", fontWeight: "bold", fontSize: "14px", cursor: !podeAvancar ? "not-allowed" : "pointer" }}
         >
           {etapaAtual === 4 ? "Confeccionar" : "Avançar"}
         </button>

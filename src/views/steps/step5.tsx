@@ -25,6 +25,10 @@ export default function Step5({ dados, atualizarDados }: any) {
     atualizarDados({ vigenciaNum: dados.vigenciaNum + 1 });
   };
 
+  // Verifica se existe algum item cadastrado com o campo "lote" preenchido
+  const temLote = dados.itens && dados.itens.some((item: any) => item.lote && item.lote.toString().trim() !== "");
+  const faltaDotacao = dados.dotacao.trim() === "" && !dados.caminhoImagemDotacao;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
       <div>
@@ -70,29 +74,43 @@ export default function Step5({ dados, atualizarDados }: any) {
 
       <div>
         <h2 style={{ fontSize: "16px", margin: "0 0 4px 0", color: "#111827" }}>Critério de Julgamento</h2>
-        <p style={{ color: "#6B7280", margin: "0 0 16px 0", fontSize: "13px", fontStyle: "italic" }}>Regra geral da Lei 14.133/21: A adjudicação deve ser preferencialmente por ITEM para ampliar a concorrência.</p>
+        <p style={{ color: "#6B7280", margin: "0 0 16px 0", fontSize: "13px", fontStyle: "italic" }}>
+          {temLote 
+            ? "Foi detectado o uso de lotes na listagem de itens. Apenas a opção de julgamento por Lote está disponível." 
+            : "Regra geral da Lei 14.133/21: A adjudicação deve ser preferencialmente por ITEM para ampliar a concorrência."}
+        </p>
         <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "16px" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-            <input type="radio" value="ITEM" checked={dados.criterio === "ITEM"} onChange={(e) => atualizarDados({ criterio: e.target.value })} />
-            Menor preço por item
-          </label>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-            <input type="radio" value="GLOBAL" checked={dados.criterio === "GLOBAL"} onChange={(e) => atualizarDados({ criterio: e.target.value })} />
-            Menor preço global
-          </label>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-            <input type="radio" value="LOTE" checked={dados.criterio === "LOTE"} onChange={(e) => atualizarDados({ criterio: e.target.value })} />
-            Menor preço por lote
-          </label>
+          {!temLote && (
+            <>
+              <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
+                <input type="radio" value="ITEM" checked={dados.criterio === "ITEM"} onChange={(e) => atualizarDados({ criterio: e.target.value })} />
+                Menor preço por item
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
+                <input type="radio" value="GLOBAL" checked={dados.criterio === "GLOBAL"} onChange={(e) => atualizarDados({ criterio: e.target.value })} />
+                Menor preço global
+              </label>
+            </>
+          )}
+          {temLote && (
+            <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
+              <input type="radio" value="LOTE" checked={dados.criterio === "LOTE"} onChange={(e) => atualizarDados({ criterio: e.target.value })} />
+              Menor preço por lote
+            </label>
+          )}
         </div>
+
         {(dados.criterio === "GLOBAL" || dados.criterio === "LOTE") && (
-          <div style={{ background: "#F9FAFB", padding: "16px", borderRadius: "12px", border: "1px solid #E5E7EB" }}>
-            <label style={{ fontWeight: "bold", fontSize: "13px", color: "#374151", display: "block", marginBottom: "8px" }}>Motivação simples para o agrupamento (Global/Lote):</label>
+          <div style={{ background: "#F9FAFB", padding: "16px", borderRadius: "12px", border: dados.motivoCriterio.trim() === "" ? "1px solid #DC2626" : "1px solid #E5E7EB" }}>
+            <label style={{ fontWeight: "bold", fontSize: "13px", color: "#374151", display: "block", marginBottom: "8px" }}>
+              Motivação para o agrupamento (Global/Lote): <span style={{ color: "#DC2626" }}>*</span>
+            </label>
             <textarea 
               value={dados.motivoCriterio}
               onChange={(e) => atualizarDados({ motivoCriterio: e.target.value })}
               style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #D1D5DB", fontSize: "13px", minHeight: "60px", resize: "vertical", boxSizing: "border-box" }}
             />
+            {dados.motivoCriterio.trim() === "" && <span style={{ color: "#DC2626", fontSize: "12px", display: "block", marginTop: "4px" }}>Este campo é obrigatório.</span>}
           </div>
         )}
       </div>
@@ -118,16 +136,18 @@ export default function Step5({ dados, atualizarDados }: any) {
             Pregão Presencial
           </label>
         </div>
+
         {dados.modalidade !== "PREGAO_ELETRONICO" && (
-          <div style={{ background: "#F9FAFB", padding: "16px", borderRadius: "12px", border: "1px solid #E5E7EB" }}>
+          <div style={{ background: "#F9FAFB", padding: "16px", borderRadius: "12px", border: dados.motivoModalidade.trim() === "" ? "1px solid #DC2626" : "1px solid #E5E7EB" }}>
             <label style={{ fontWeight: "bold", fontSize: "13px", color: "#374151", display: "block", marginBottom: "8px" }}>
-              {dados.modalidade === "PREGAO_PRESENCIAL" ? "Justificativa simples (Atenção: Válido para municípios com até 20k habitantes até abril de 2027):" : "Justificativa (Atenção: Limite legal de até 65k ao todo ao longo do ano):"}
+              {dados.modalidade === "PREGAO_PRESENCIAL" ? "Justificativa (Válido para municípios com até 20k habitantes até abril de 2027):" : "Justificativa (Atenção: Limite legal de até 65k ao todo ao longo do ano):"} <span style={{ color: "#DC2626" }}>*</span>
             </label>
             <textarea 
               value={dados.motivoModalidade}
               onChange={(e) => atualizarDados({ motivoModalidade: e.target.value })}
               style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #D1D5DB", fontSize: "13px", minHeight: "60px", resize: "vertical", boxSizing: "border-box" }}
             />
+            {dados.motivoModalidade.trim() === "" && <span style={{ color: "#DC2626", fontSize: "12px", display: "block", marginTop: "4px" }}>Este campo é obrigatório.</span>}
           </div>
         )}
       </div>
@@ -156,13 +176,16 @@ export default function Step5({ dados, atualizarDados }: any) {
       </div>
 
       <div>
-        <h2 style={{ fontSize: "16px", margin: "0 0 16px 0", color: "#111827" }}>Dotação Orçamentária (Texto ou Imagem)</h2>
+        <h2 style={{ fontSize: "16px", margin: "0 0 16px 0", color: "#111827" }}>
+          Dotação Orçamentária <span style={{ color: "#DC2626" }}>*</span>
+        </h2>
+        <p style={{ color: "#6B7280", margin: "0 0 8px 0", fontSize: "13px" }}>Preencha o campo de texto ou anexe uma imagem do comprovante de dotação.</p>
         <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
           <textarea 
             value={dados.dotacao}
             onChange={(e) => atualizarDados({ dotacao: e.target.value })}
             placeholder="Descreva a dotação orçamentária..."
-            style={{ flex: 1, padding: "12px", borderRadius: "12px", border: "1px solid #D1D5DB", minHeight: "80px", fontSize: "14px", resize: "vertical", boxSizing: "border-box" }}
+            style={{ flex: 1, padding: "12px", borderRadius: "12px", border: faltaDotacao ? "1px solid #DC2626" : "1px solid #D1D5DB", minHeight: "80px", fontSize: "14px", resize: "vertical", boxSizing: "border-box" }}
           />
           <button 
             onClick={handleAnexarImagem} 
@@ -171,6 +194,7 @@ export default function Step5({ dados, atualizarDados }: any) {
             {dados.caminhoImagemDotacao ? "Imagem Anexada ✓" : "Anexar Imagem"}
           </button>
         </div>
+        {faltaDotacao && <span style={{ color: "#DC2626", fontSize: "12px", display: "block", marginTop: "4px" }}>É obrigatório preencher a dotação ou anexar uma imagem.</span>}
       </div>
 
       <div>
@@ -185,14 +209,18 @@ export default function Step5({ dados, atualizarDados }: any) {
             Não previsto no PAC
           </label>
         </div>
+        
         {dados.pac === "NAO" && (
-          <div style={{ background: "#F9FAFB", padding: "16px", borderRadius: "12px", border: "1px solid #E5E7EB" }}>
-            <label style={{ fontWeight: "bold", fontSize: "13px", color: "#374151", display: "block", marginBottom: "8px" }}>Justificativa simples para a não inclusão no PAC:</label>
+          <div style={{ background: "#F9FAFB", padding: "16px", borderRadius: "12px", border: dados.motivoPac.trim() === "" ? "1px solid #DC2626" : "1px solid #E5E7EB" }}>
+            <label style={{ fontWeight: "bold", fontSize: "13px", color: "#374151", display: "block", marginBottom: "8px" }}>
+              Justificativa para a não inclusão no PAC: <span style={{ color: "#DC2626" }}>*</span>
+            </label>
             <textarea 
               value={dados.motivoPac}
               onChange={(e) => atualizarDados({ motivoPac: e.target.value })}
               style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #D1D5DB", fontSize: "13px", minHeight: "60px", resize: "vertical", boxSizing: "border-box" }}
             />
+            {dados.motivoPac.trim() === "" && <span style={{ color: "#DC2626", fontSize: "12px", display: "block", marginTop: "4px" }}>Este campo é obrigatório.</span>}
           </div>
         )}
       </div>

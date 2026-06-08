@@ -7,7 +7,7 @@ export default function Step4({ dados, atualizarDados }: any) {
   const [fiscalCargo, setFiscalCargo] = useState("");
 
   const handleAddGestor = () => {
-    if (!gestorNome) return;
+    if (!gestorNome || !gestorCargo) return;
     const novo = { nome: gestorNome, cargo: gestorCargo };
     atualizarDados({ gestores: [...dados.gestores, novo] });
     setGestorNome("");
@@ -15,7 +15,7 @@ export default function Step4({ dados, atualizarDados }: any) {
   };
 
   const handleAddFiscal = () => {
-    if (!fiscalNome) return;
+    if (!fiscalNome || !fiscalCargo) return;
     const novo = { nome: fiscalNome, cargo: fiscalCargo };
     atualizarDados({ fiscais: [...dados.fiscais, novo] });
     setFiscalNome("");
@@ -33,10 +33,12 @@ export default function Step4({ dados, atualizarDados }: any) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
       <div>
-        <h2 style={{ fontSize: "16px", margin: "0 0 8px 0", color: "#111827" }}>Gestores do Contrato</h2>
-        <p style={{ color: "#6B7280", margin: "0 0 16px 0", fontSize: "13px" }}>Adicione os responsáveis pelo contrato e mantenha o histórico de gestores disponíveis.</p>
+        <h2 style={{ fontSize: "16px", margin: "0 0 8px 0", color: "#111827" }}>
+          Gestores do Contrato <span style={{ color: "#DC2626" }}>*</span>
+        </h2>
+        <p style={{ color: "#6B7280", margin: "0 0 16px 0", fontSize: "13px" }}>Adicione pelo menos um responsável pelo contrato.</p>
         
-        <div style={{ background: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: "14px", padding: "20px" }}>
+        <div style={{ background: "#F9FAFB", border: dados.gestores.length === 0 ? "1px solid #DC2626" : "1px solid #E5E7EB", borderRadius: "14px", padding: "20px" }}>
           <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "flex-end" }}>
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: "13px", fontWeight: "bold", color: "#374151", display: "block", marginBottom: "6px" }}>Nome</label>
@@ -58,7 +60,8 @@ export default function Step4({ dados, atualizarDados }: any) {
             </div>
             <button 
               onClick={handleAddGestor}
-              style={{ padding: "10px 24px", height: "40px", background: "#2563EB", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", fontSize: "13px", cursor: "pointer" }}
+              disabled={!gestorNome || !gestorCargo}
+              style={{ padding: "10px 24px", height: "40px", background: (!gestorNome || !gestorCargo) ? "#9CA3AF" : "#2563EB", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", fontSize: "13px", cursor: (!gestorNome || !gestorCargo) ? "not-allowed" : "pointer" }}
             >
               Adicionar Gestor
             </button>
@@ -84,10 +87,12 @@ export default function Step4({ dados, atualizarDados }: any) {
       </div>
 
       <div>
-        <h2 style={{ fontSize: "16px", margin: "0 0 8px 0", color: "#111827" }}>Fiscais do Contrato</h2>
-        <p style={{ color: "#6B7280", margin: "0 0 16px 0", fontSize: "13px" }}>Registre os fiscais responsáveis pela fiscalização e pelo acompanhamento do processo.</p>
+        <h2 style={{ fontSize: "16px", margin: "0 0 8px 0", color: "#111827" }}>
+          Fiscais do Contrato <span style={{ color: "#DC2626" }}>*</span>
+        </h2>
+        <p style={{ color: "#6B7280", margin: "0 0 16px 0", fontSize: "13px" }}>Registre pelo menos um fiscal responsável pelo acompanhamento.</p>
         
-        <div style={{ background: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: "14px", padding: "20px" }}>
+        <div style={{ background: "#F9FAFB", border: dados.fiscais.length === 0 ? "1px solid #DC2626" : "1px solid #E5E7EB", borderRadius: "14px", padding: "20px" }}>
           <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "flex-end" }}>
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: "13px", fontWeight: "bold", color: "#374151", display: "block", marginBottom: "6px" }}>Nome</label>
@@ -109,7 +114,8 @@ export default function Step4({ dados, atualizarDados }: any) {
             </div>
             <button 
               onClick={handleAddFiscal}
-              style={{ padding: "10px 24px", height: "40px", background: "#2563EB", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", fontSize: "13px", cursor: "pointer" }}
+              disabled={!fiscalNome || !fiscalCargo}
+              style={{ padding: "10px 24px", height: "40px", background: (!fiscalNome || !fiscalCargo) ? "#9CA3AF" : "#2563EB", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", fontSize: "13px", cursor: (!fiscalNome || !fiscalCargo) ? "not-allowed" : "pointer" }}
             >
               Adicionar Fiscal
             </button>

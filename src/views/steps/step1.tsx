@@ -1,6 +1,6 @@
 import React from "react";
-import { open } from "@tauri-apps/api/dialog";
-import { readBinaryFile } from "@tauri-apps/api/fs";
+import { open } from "@tauri-apps/plugin-dialog";
+import { readFile } from "@tauri-apps/plugin-fs";
 import * as XLSX from "xlsx";
 
 export default function Step1({ dados, atualizarDados }: any) {
@@ -9,12 +9,12 @@ export default function Step1({ dados, atualizarDados }: any) {
   };
 
   const parseMoeda = (texto: string) => {
-    const num = texto.replace(/[^\d,.-]/g, "").replace(".", "").replace(",", ".");
+    const num = String(texto).replace(/[^\d,.-]/g, "").replace(".", "").replace(",", ".");
     return Number(num) || 0;
   };
 
   const handleAdd = () => {
-    const novosItens = [...dados.itens, { id: Date.now(), descricao: "", un: "UN", qtd: 1, valor: 0 }];
+    const novosItens = [...dados.itens, { id: Date.now(), lote: "", descricao: "", un: "UN", qtd: 1, valor: 0 }];
     atualizarDados({ itens: novosItens });
   };
 
@@ -45,7 +45,7 @@ export default function Step1({ dados, atualizarDados }: any) {
       
       if (!selected || Array.isArray(selected)) return;
 
-      const data = await readBinaryFile(selected);
+      const data = await readFile(selected);
       const workbook = XLSX.read(data, { type: "array" });
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
@@ -53,6 +53,7 @@ export default function Step1({ dados, atualizarDados }: any) {
 
       const novosItens = json.map((row: any) => ({
         id: Date.now() + Math.random(),
+        lote: row["Lote"] || row["Grupo"] || "",
         descricao: row["Descrição"] || row["Descricao"] || row["Nome"] || row["Produto"] || "",
         un: row["UN"] || row["Unidade"] || "UN",
         qtd: Number(row["Quantidade"] || row["Qtd"] || 1),
@@ -66,44 +67,52 @@ export default function Step1({ dados, atualizarDados }: any) {
     }
   };
 
-  const totalGeral = dados.itens.reduce((acc: number, item: any) => acc + (item.qtd * item.valor), 0);
+  const totalGeral = dados.itens.reduce((acc: number, item: any) => acc + (Number(item.qtd) * Number(item.valor)), 0);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       <div>
-        <label style={{ fontWeight: "bold", fontSize: "16px", color: "#111827", display: "block", marginBottom: "8px" }}>Objeto da Licitação:</label>
+        <label style={{ fontWeight: "bold", fontSize: "16px", color: "#111827", display: "block", marginBottom: "8px" }}>
+          Objeto da Licitação: <span style={{ color: "#DC2626" }}>*</span>
+        </label>
         <p style={{ color: "#6B7280", fontSize: "13px", margin: "0 0 12px 0" }}>Descreva brevemente o objeto licitado para direcionar a geração de especificações.</p>
         <input 
           type="text" 
+          required
           value={dados.objeto} 
           onChange={(e) => atualizarDados({ objeto: e.target.value })}
-          style={{ width: "100%", padding: "12px", borderRadius: "12px", border: "1px solid #D1D5DB", fontSize: "14px", boxSizing: "border-box" }}
+          style={{ width: "100%", padding: "12px", borderRadius: "12px", border: dados.objeto.trim() === "" ? "1px solid #DC2626" : "1px solid #D1D5DB", fontSize: "14px", boxSizing: "border-box" }}
         />
       </div>
 
       <div>
-        <label style={{ fontWeight: "bold", fontSize: "16px", color: "#111827", display: "block", marginBottom: "8px" }}>Justificativa da Demanda:</label>
+        <label style={{ fontWeight: "bold", fontSize: "16px", color: "#111827", display: "block", marginBottom: "8px" }}>
+          Justificativa da Demanda: <span style={{ color: "#DC2626" }}>*</span>
+        </label>
         <p style={{ color: "#6B7280", fontSize: "13px", margin: "0 0 12px 0" }}>Descreva brevemente a justificativa da demanda.</p>
         <textarea 
+          required
           value={dados.necessidade}
           onChange={(e) => atualizarDados({ necessidade: e.target.value })}
-          style={{ width: "100%", padding: "12px", borderRadius: "12px", border: "1px solid #D1D5DB", fontSize: "14px", minHeight: "120px", resize: "vertical", boxSizing: "border-box" }}
+          style={{ width: "100%", padding: "12px", borderRadius: "12px", border: dados.necessidade.trim() === "" ? "1px solid #DC2626" : "1px solid #D1D5DB", fontSize: "14px", minHeight: "120px", resize: "vertical", boxSizing: "border-box" }}
         />
       </div>
 
       <div style={{ borderTop: "1px solid #E5E7EB", paddingTop: "24px" }}>
-        <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
+        <div style={{ display: "flex", gap: "12px", marginBottom: "16px", alignItems: "center" }}>
           <button onClick={handleAdd} style={{ width: "140px", height: "38px", background: "#2563EB", color: "white", border: "none", borderRadius: "12px", fontWeight: "bold", cursor: "pointer" }}>+ Novo Item</button>
           <button onClick={importarPlanilha} style={{ width: "140px", height: "38px", background: "#2563EB", color: "white", border: "none", borderRadius: "12px", fontWeight: "bold", cursor: "pointer" }}>Importar XLSX</button>
+          {dados.itens.length === 0 && <span style={{ color: "#DC2626", fontSize: "13px", fontWeight: "bold" }}>Adicione pelo menos 1 item para avançar.</span>}
         </div>
 
         <div style={{ background: "#4B5563", color: "white", display: "flex", padding: "12px", borderRadius: "8px", fontWeight: "bold", fontSize: "13px" }}>
           <div style={{ width: "40px" }}>#</div>
-          <div style={{ flex: 1, minWidth: "200px" }}>Descrição</div>
+          <div style={{ width: "70px" }}>Lote</div>
+          <div style={{ flex: 1, minWidth: "150px" }}>Descrição</div>
           <div style={{ width: "60px" }}>UN</div>
           <div style={{ width: "80px" }}>Qtd</div>
-          <div style={{ width: "120px" }}>Vlr Unit.</div>
-          <div style={{ width: "120px" }}>Total</div>
+          <div style={{ width: "110px" }}>Vlr Unit.</div>
+          <div style={{ width: "110px" }}>Total</div>
           <div style={{ width: "100px" }}></div>
         </div>
 
@@ -112,15 +121,17 @@ export default function Step1({ dados, atualizarDados }: any) {
             <div key={item.id} style={{ display: "flex", alignItems: "center", background: "#F3F4F6", padding: "8px 12px", borderRadius: "8px", gap: "8px" }}>
               <div style={{ width: "40px", fontWeight: "bold", color: "#374151" }}>{index + 1}</div>
               
-              <input type="text" value={item.descricao} onChange={(e) => handleChange(item.id, "descricao", e.target.value)} style={{ flex: 1, minWidth: "200px", padding: "8px", borderRadius: "8px", border: "1px solid #D1D5DB" }} />
+              <input type="text" placeholder="Lote" value={item.lote} onChange={(e) => handleChange(item.id, "lote", e.target.value)} style={{ width: "70px", padding: "8px", borderRadius: "8px", border: "1px solid #D1D5DB" }} />
               
-              <input type="text" value={item.un} onChange={(e) => handleChange(item.id, "un", e.target.value)} style={{ width: "60px", padding: "8px", borderRadius: "8px", border: "1px solid #D1D5DB" }} />
+              <input type="text" required value={item.descricao} onChange={(e) => handleChange(item.id, "descricao", e.target.value)} style={{ flex: 1, minWidth: "150px", padding: "8px", borderRadius: "8px", border: item.descricao.trim() === "" ? "1px solid #DC2626" : "1px solid #D1D5DB" }} />
               
-              <input type="number" value={item.qtd} onChange={(e) => handleChange(item.id, "qtd", Number(e.target.value))} style={{ width: "80px", padding: "8px", borderRadius: "8px", border: "1px solid #D1D5DB" }} />
+              <input type="text" required value={item.un} onChange={(e) => handleChange(item.id, "un", e.target.value)} style={{ width: "60px", padding: "8px", borderRadius: "8px", border: item.un.trim() === "" ? "1px solid #DC2626" : "1px solid #D1D5DB" }} />
               
-              <input type="text" value={item.valor} onChange={(e) => handleChange(item.id, "valor", parseMoeda(e.target.value))} style={{ width: "120px", padding: "8px", borderRadius: "8px", border: "1px solid #D1D5DB" }} />
+              <input type="number" required min="0.01" step="0.01" value={item.qtd} onChange={(e) => handleChange(item.id, "qtd", Number(e.target.value))} style={{ width: "80px", padding: "8px", borderRadius: "8px", border: Number(item.qtd) <= 0 ? "1px solid #DC2626" : "1px solid #D1D5DB" }} />
               
-              <div style={{ width: "120px", fontWeight: "bold", color: "#111827", fontSize: "14px" }}>{formatarMoeda(item.qtd * item.valor)}</div>
+              <input type="text" required value={item.valor} onChange={(e) => handleChange(item.id, "valor", parseMoeda(e.target.value))} style={{ width: "110px", padding: "8px", borderRadius: "8px", border: Number(item.valor) <= 0 ? "1px solid #DC2626" : "1px solid #D1D5DB" }} />
+              
+              <div style={{ width: "110px", fontWeight: "bold", color: "#111827", fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis" }}>{formatarMoeda(Number(item.qtd) * Number(item.valor))}</div>
               
               <div style={{ width: "100px", display: "flex", gap: "4px" }}>
                 <button onClick={() => handleMover(index, -1)} style={{ width: "28px", height: "28px", borderRadius: "6px", border: "1px solid #D1D5DB", background: "white", cursor: "pointer" }}>↑</button>
