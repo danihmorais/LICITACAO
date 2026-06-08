@@ -207,7 +207,7 @@ class AppController:
             except Exception as e:
                 logging.warning(f"Não foi possível carregar o ícone: {str(e)}")
 
-        from views.login_view import LoginView
+        from src.views.login_view import LoginView
         self.view = LoginView(self.app, self)
         self.view.pack(fill="both", expand=True)
         self.app.mainloop()
@@ -314,7 +314,7 @@ class AppController:
         logging.info("Login finalizado com sucesso. Redirecionando para o WizardView.")
 
         self.view.pack_forget()
-        from views.wizard_view import WizardView
+        from src.views.wizard_view import WizardView
         self.view = WizardView(self.app, self)
         self.view.pack(fill="both", expand=True)
         return True
