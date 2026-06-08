@@ -1,256 +1,92 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import Sidebar from "./components/Sidebar";
-import Dashboard from "./pages/Dashboard";
-import Pacientes from "./pages/Pacientes";
-import Consultas from "./pages/Consultas";
-import Prontuarios from "./pages/Prontuarios";
-import Exportacao from "./pages/Exportacao";
-import Configuracoes from "./pages/Configuracoes";
-import logo from "./assets/logo.png";
-import { dbQuery } from "./db";
+import logo from "./assets/logo.png"; // Certifique-se que o logo está na pasta assets
 
-interface Configuracao {
-  chave: string;
-  valor: string;
-}
-
-function App() {
-  const [autenticado, setAutenticado] = useState(false);
-  const [usuario, setUsuario] = useState("");
-  const [nivelUsuario, setNivelUsuario] = useState("");
-  const [senhaInput, setSenhaInput] = useState("");
-  const [erro, setErro] = useState("");
+export default function App() {
+  const [provedor, setProvedor] = useState("gemini");
+  const [chaveApi, setChaveApi] = useState("");
   const [carregando, setCarregando] = useState(false);
-  const [paginaAtual, setPaginaAtual] = useState("Dashboard");
 
-  const realizarLogin = async (e: React.FormEvent) => {
+  const fazerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setCarregando(true);
-    setErro("");
+    
     try {
-      const nivel = await invoke<string>("login", { usuario, senha: senhaInput });
-      setNivelUsuario(nivel);
-      setAutenticado(true);
-    } catch (err) {
-      setErro(String(err));
+      // Aqui o React vai chamar uma função no Rust (que você criará no main.rs)
+      // para salvar a chave e validar.
+      await invoke("salvar_config_ia", { provedor, chave: chaveApi });
+      console.log("Login feito com sucesso!");
+      // Redirecionar para a próxima tela do Licita.AI aqui
+    } catch (error) {
+      console.error("Erro ao configurar API:", error);
+      alert("Erro ao validar a chave de API.");
     } finally {
       setCarregando(false);
     }
   };
 
-  const realizarLogout = () => {
-    setAutenticado(false);
-    setUsuario("");
-    setSenhaInput("");
-    setNivelUsuario("");
-    setPaginaAtual("Dashboard");
-    setErro("");
+  const abrirAjuda = () => {
+    const url = provedor === "openrouter" 
+      ? "https://openrouter.ai/settings/keys" 
+      : "https://aistudio.google.com/app/apikey";
+    // Invoca o Rust para abrir o link no navegador padrão do PC
+    invoke("abrir_link", { url }); 
   };
-
-  const renderizarPagina = () => {
-    switch (paginaAtual) {
-      case "Dashboard": return <Dashboard />;
-      case "Pacientes": return <Pacientes />;
-      case "Consultas": return <Consultas />;
-      case "Prontuários": return <Prontuarios />;
-      case "Exportação": return <Exportacao />;
-      case "Configurações": return <Configuracoes usuario={usuario} nivel={nivelUsuario} />;
-      default: return <Dashboard />;
-    }
-  };
-  
-  const [fisioterapeutaNome, setFisioterapeutaNome] = useState("");
-
-  useEffect(() => {
-    carregarConfiguracoes();
-  }, []);
-
-  const carregarConfiguracoes = async () => {
-    try {
-      const resConf = await dbQuery<Configuracao>(`
-        SELECT chave, valor
-        FROM configuracoes
-        WHERE chave = 'fisioterapeuta_nome'
-      `);
-
-      const nome =
-        resConf.find((c) => c.chave === "fisioterapeuta_nome")?.valor || "";
-
-      setFisioterapeutaNome(nome);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  if (autenticado) {
-    return (
-      <div style={{ display: "flex", height: "100vh", width: "100vw", overflow: "hidden", background: "var(--bg-base)" }}>
-        <Sidebar
-          paginaAtual={paginaAtual}
-          setPaginaAtual={setPaginaAtual}
-          onLogout={realizarLogout}
-          usuario={usuario}
-        />
-        <main style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-          <div style={{
-            padding: "1rem 2rem",
-            borderBottom: "1px solid var(--border)",
-            height:"80px",
-            background: "var(--bg-panel)",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-            flexShrink: 0,
-            boxShadow: "var(--shadow-sm)",
-          }}>
-            <h1 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "var(--text-main)", letterSpacing: "-0.02em" }}>
-              {paginaAtual}
-            </h1>
-            {nivelUsuario === "admin" && (
-              <span style={{
-                background: "rgba(37,99,235,0.1)",
-                color: "var(--btn-primary)",
-                fontSize: "11px",
-                fontWeight: 700,
-                padding: "2px 8px",
-                borderRadius: "999px",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}>
-                {fisioterapeutaNome
-                ? fisioterapeutaNome.split(" ")[0]
-                : "Fisioterapeuta"}
-              </span>
-            )}
-          </div>
-          <div style={{ flex: 1, padding: "1.5rem 2rem", overflowY: "auto" }}>
-            {renderizarPagina()}
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   return (
-    <div style={{
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      height: "100vh",
-      width: "100vw",
-      background: "var(--bg-base)",
-    }}>
-      <div style={{
-        width: "100%",
-        maxWidth: "380px",
-        padding: "0 1.5rem",
-      }}>
-        <div style={{
-          background: "var(--bg-panel)",
-          borderRadius: "16px",
-          padding: "2.5rem",
-          boxShadow: "var(--shadow-lg)",
-          border: "1px solid var(--border)",
-        }}>
-          <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <img
-            src={logo}
-            alt="Logo"
-            style={{
-              width: 72,
-              height: 72,
-              objectFit: "contain",
-              margin: "0 auto 1rem",
-              display: "block",
-            }}
-          />
-
-          <h2
-            style={{
-              margin: "0 0 0.25rem",
-              fontSize: "1.4rem",
-              fontWeight: 700,
-              color: "var(--text-main)",
-              letterSpacing: "-0.03em",
-            }}
-          >
-            Prontuário
-          </h2>
-
-          <p
-            style={{
-              margin: 0,
-              fontSize: "14px",
-              color: "var(--text-muted)",
-            }}
-          >
-            Sistema de Gestão Clínica
-          </p>
-        </div>
-
-          <form onSubmit={realizarLogin} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-              <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>Usuário</label>
-              <input
-                type="text"
-                value={usuario}
-                onChange={(e) => setUsuario(e.target.value)}
-                placeholder="Digite seu usuário"
-                required
-                autoFocus
-                style={{ padding: "0.65rem 0.85rem" }}
-              />
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-              <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-muted)" }}>Senha</label>
-              <input
-                type="password"
-                value={senhaInput}
-                onChange={(e) => setSenhaInput(e.target.value)}
-                placeholder="Digite sua senha"
-                required
-                style={{ padding: "0.65rem 0.85rem" }}
-              />
-            </div>
-            {erro && (
-              <div style={{
-                padding: "0.6rem 0.85rem",
-                background: "rgba(220,38,38,0.08)",
-                border: "1px solid rgba(220,38,38,0.2)",
-                borderRadius: "8px",
-                color: "var(--btn-danger)",
-                fontSize: "13px",
-                fontWeight: 500,
-              }}>
-                {erro}
-              </div>
-            )}
-            <button
-              type="submit"
-              disabled={carregando}
-              style={{
-                padding: "0.75rem",
-                marginTop: "0.5rem",
-                background: carregando ? "var(--text-light)" : "var(--btn-primary)",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "15px",
-                fontWeight: 600,
-                cursor: carregando ? "not-allowed" : "pointer",
-              }}
-            >
-              {carregando ? "Entrando..." : "Entrar"}
-            </button>
-          </form>
-        </div>
-        <p style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "12px", color: "var(--text-light)" }}>
-          Padrão: admin / admin
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "#F3F4F6", fontFamily: "sans-serif" }}>
+      <div style={{ background: "#FFFFFF", padding: "40px", borderRadius: "24px", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", width: "100%", maxWidth: "600px", textAlign: "center" }}>
+        
+        {/* Header equivalente ao _build_header do Python */}
+        <img src={logo} alt="Licita.AI Logo" style={{ width: "90px", marginBottom: "16px" }} />
+        <h1 style={{ margin: "0 0 8px 0", fontSize: "34px", color: "#111827" }}>Licita.AI</h1>
+        <p style={{ color: "#6B7280", marginBottom: "35px" }}>
+          Automatize a criação de DFD, ETP e TR com Inteligência Artificial
         </p>
+
+        {/* Provider Section equivalente ao _build_provider_section */}
+        <h3 style={{ fontSize: "16px", color: "#1F2937", marginBottom: "16px" }}>Selecione o motor de Inteligência Artificial</h3>
+        <div style={{ display: "flex", justifyContent: "center", gap: "24px", marginBottom: "35px" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+            <input type="radio" value="gemini" checked={provedor === "gemini"} onChange={(e) => setProvedor(e.target.value)} />
+            Google Gemini
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+            <input type="radio" value="openrouter" checked={provedor === "openrouter"} onChange={(e) => setProvedor(e.target.value)} />
+            OpenRouter
+          </label>
+        </div>
+
+        {/* API Section equivalente ao _build_api_section */}
+        <form onSubmit={fazerLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div style={{ textAlign: "left" }}>
+            <label style={{ fontWeight: "bold", fontSize: "14px", color: "#1F2937", display: "block", marginBottom: "8px" }}>Chave de API</label>
+            <input 
+              type="password" 
+              placeholder="Cole sua chave de API aqui" 
+              value={chaveApi}
+              onChange={(e) => setChaveApi(e.target.value)}
+              required
+              style={{ width: "100%", padding: "14px", borderRadius: "14px", border: "1px solid #D1D5DB", fontSize: "14px", boxSizing: "border-box" }}
+            />
+          </div>
+          
+          <button type="button" onClick={abrirAjuda} style={{ background: "none", border: "none", color: "#2563EB", cursor: "pointer", fontSize: "13px", textAlign: "left", padding: 0 }}>
+            Não tem uma chave? Saiba como obter gratuitamente.
+          </button>
+
+          {/* Action Button equivalente ao _build_action_button */}
+          <button type="submit" disabled={carregando} style={{ marginTop: "24px", padding: "16px", backgroundColor: "#2563EB", color: "white", border: "none", borderRadius: "14px", fontSize: "16px", fontWeight: "bold", cursor: carregando ? "not-allowed" : "pointer" }}>
+            {carregando ? "Conectando..." : "Acessar Sistema"}
+          </button>
+        </form>
+
+        {/* Footer */}
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontSize: "12px", color: "#6B7280" }}>
+          <span style={{ color: "#22C55E", fontWeight: "bold" }}>CONECTADO À API</span>
+          <span>@danih.morais</span>
+        </div>
       </div>
     </div>
   );
 }
-
-export default App;
