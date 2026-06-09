@@ -6,6 +6,7 @@ import Step3 from "./steps/step3";
 import Step4 from "./steps/step4";
 import Step5 from "./steps/step5";
 import { mapearDadosWizard } from "../utils/mapearDados";
+import { processarDadosIA } from "../providers/services/geradorIA";
 
 export default function Wizard() {
   const [etapaAtual, setEtapaAtual] = useState(0);
@@ -35,6 +36,7 @@ export default function Wizard() {
     caminhoImagemDotacao: ""
   });
   const [carregando, setCarregando] = useState(false);
+  const [statusTexto, setStatusTexto] = useState("Iniciando...");
 
   const atualizarDados = (novosDados: Partial<typeof dados>) => {
     setDados((prev) => ({ ...prev, ...novosDados }));
@@ -87,16 +89,45 @@ export default function Wizard() {
 
   const confeccionarDocumentos = async () => {
     setCarregando(true);
+    setStatusTexto("A ler configurações da IA...");
     try {
+      const config: any = await invoke("ler_config_ia");
+      const provedor = config.provedor || "gemini";
+      const chaveApi = config.chave_api || "";
+
+      if (!chaveApi) {
+        alert("Chave de API não configurada. Por favor, volte ao início e insira a sua chave.");
+        setCarregando(false);
+        return;
+      }
+
       const dadosMapeados = mapearDadosWizard(dados);
-      await invoke("gerar_documentos", { dados: dadosMapeados }); // Envia os dados mapeados
+      const meeppExclusivo = dados.meepp === "SIM";
+
+      setStatusTexto("A gerar Documento de Formalização de Demanda (DFD)...");
+      const dadosIaDfd = await processarDadosIA(dadosMapeados, chaveApi, provedor, meeppExclusivo, "DFD");
+
+      setStatusTexto("A estruturar o Estudo Técnico Preliminar (ETP)...");
+      const dadosIaEtp = await processarDadosIA(dadosMapeados, chaveApi, provedor, meeppExclusivo, "ETP");
+
+      setStatusTexto("A compor o Termo de Referência (TR)...");
+      const dadosIaTr = await processarDadosIA(dadosMapeados, chaveApi, provedor, meeppExclusivo, "TR");
+
+      const dadosIaFinais = { ...dadosIaDfd, ...dadosIaEtp, ...dadosIaTr };
+
+      setStatusTexto("A preencher os ficheiros DOCX finais...");
+      await invoke("gerar_documentos", { 
+        dadosUsuario: dadosMapeados, 
+        dadosIa: dadosIaFinais 
+      });
+
       alert("Documentos gerados com sucesso!");
     } catch (erro) {
       alert("Erro na geração: " + erro);
     } finally {
       setCarregando(false);
     }
-};
+  };
 
   const renderizarEtapa = () => {
     switch (etapaAtual) {
@@ -114,9 +145,9 @@ export default function Wizard() {
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", background: "#F3F4F6" }}>
         <div style={{ background: "white", padding: "40px", borderRadius: "24px", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", textAlign: "center", width: "100%", maxWidth: "600px" }}>
           <h2 style={{ margin: "0 0 16px 0", color: "#111827", fontSize: "24px" }}>Gerando Artefatos com IA</h2>
-          <p style={{ color: "#6B7280", margin: "0 0 24px 0" }}>Iniciando...</p>
+          <p style={{ color: "#6B7280", margin: "0 0 24px 0" }}>{statusTexto}</p>
           <div style={{ width: "100%", height: "6px", background: "#E5E7EB", borderRadius: "4px", overflow: "hidden" }}>
-            <div style={{ width: "50%", height: "100%", background: "#2563EB", transition: "width 0.3s" }}></div>
+            <div style={{ width: "50%", height: "100%", background: "#2563EB", transition: "width 0.3s", animation: "progress 2s infinite" }}></div>
           </div>
         </div>
       </div>

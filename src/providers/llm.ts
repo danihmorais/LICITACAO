@@ -23,7 +23,8 @@ export async function gerarTextoGemini(prompt: string, apiKey: string, model: st
   const data = await response.json();
   
   try {
-    const textoFinal = data.candidates[0].content.parts[0].text;
+    let textoFinal = data.candidates[0].content.parts[0].text;
+    textoFinal = textoFinal.replace(/```json/gi, "").replace(/```/g, "").trim();
     return JSON.parse(textoFinal);
   } catch (err) {
     throw new Error("Resposta inesperada da API do Gemini. Estrutura de dados ou JSON inválidos.");
@@ -55,7 +56,8 @@ export async function gerarTextoOpenRouter(prompt: string, apiKey: string, model
   const data = await response.json();
 
   try {
-    const textoFinal = data.choices[0].message.content;
+    let textoFinal = data.choices[0].message.content;
+    textoFinal = textoFinal.replace(/```json/gi, "").replace(/```/g, "").trim();
     return JSON.parse(textoFinal);
   } catch (err) {
     throw new Error("Resposta inesperada da API do OpenRouter. Estrutura de dados ou JSON inválidos.");

@@ -8,10 +8,8 @@ export default function App() {
   const [chaveApi, setChaveApi] = useState("");
   const [carregando, setCarregando] = useState(false);
   
-  // AQUI: Consumo do contexto do tema
   const { theme, toggleTheme } = useContext(ThemeContext);
 
-  // Variáveis de cor baseadas no tema atual
   const isDark = theme === "dark";
   const bgBody = isDark ? "#111827" : "#F3F4F6";
   const bgCard = isDark ? "#1F2937" : "#FFFFFF";
@@ -26,9 +24,7 @@ export default function App() {
     
     try {
       await invoke("salvar_config_ia", { provedor, chave: chaveApi });
-      console.log("Login feito com sucesso!");
     } catch (error) {
-      console.error("Erro ao configurar API:", error);
       alert("Erro ao validar a chave de API.");
     } finally {
       setCarregando(false);
@@ -45,7 +41,6 @@ export default function App() {
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: bgBody, transition: "background-color 0.3s", fontFamily: "sans-serif" }}>
       
-      {/* Botão flutuante para mudar o tema */}
       <button 
         onClick={toggleTheme} 
         style={{ position: "absolute", top: "20px", right: "20px", padding: "8px 16px", borderRadius: "8px", border: "none", cursor: "pointer", background: isDark ? "#374151" : "#E5E7EB", color: textColor }}

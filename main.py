@@ -30,7 +30,7 @@ def processar():
     try:
         if hasattr(sys.stdin, 'reconfigure'):
             sys.stdin.reconfigure(encoding='utf-8')
-        input_data = sys.stdin.read()
+        input_data = sys.stdin.read().strip()
         if not input_data:
             return
 
@@ -38,10 +38,10 @@ def processar():
         acao = payload.get("acao")
 
         if acao == "salvar_documentos":
-            dados_ia = payload.get("dados_ia", {})
-            dados_usuario = payload.get("dados_usuario", {})
-            preenchimentos_manuais = payload.get("preenchimentos_manuais", {})
-            pasta_saida_raw = payload.get("pasta_saida", "saida")
+            dados_ia = payload.get("dados_ia") or {}
+            dados_usuario = payload.get("dados_usuario") or {}
+            preenchimentos_manuais = payload.get("preenchimentos_manuais") or {}
+            pasta_saida_raw = payload.get("pasta_saida", "Documentos_Gerados")
             pasta_modelos_raw = payload.get("pasta_modelos", "modelos")
             arquivos_base = payload.get("arquivos_base", [])
 

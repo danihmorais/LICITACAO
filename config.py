@@ -43,9 +43,11 @@ DEFAULT_SETTINGS = {
         "dispensa_pequeno_valor": 9635
     },
     "textos": {
-        "clausula_padrao": "",
-        "meepp_exclusivo": "",
-        "meepp_nao_exclusivo": ""
+        "clausula_padrao": "O contrato poderá ser prorrogado nos termos da legislação vigente.",
+        "meepp_exclusivo": "Participação exclusiva para Microempresas e Empresas de Pequeno Porte (ME/EPP).",
+        "meepp_nao_exclusivo": "Participação ampla, sem exclusividade para ME/EPP.",
+        "amostra_tr": "Será exigida amostra do licitante vencedor provisório, conforme estipulado neste Termo de Referência.",
+        "vistoria_tr": "É recomendada a vistoria prévia do local de execução dos serviços ou entrega dos bens."
     }
 }
 

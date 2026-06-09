@@ -26,15 +26,15 @@ CHAVES_RAW = {
     "INSTRUCOES_EXTRAS",
 }
 
-SIM_VALORES = {"sim", "s", "x"}
-NAO_VALORES = {"não", "nao", "n", ""}
+SIM_VALORES = {"sim", "s", "x", "true", "1"}
+NAO_VALORES = {"não", "nao", "n", "", "false", "0"}
 
 
-def _normalizar_sim_nao(valor: str) -> str:
+def _normalizar_sim_nao(valor) -> str:
     return str(valor).strip().casefold()
 
 
-def _converter_para_sim(valor: str) -> bool:
+def _converter_para_sim(valor) -> bool:
     return _normalizar_sim_nao(valor) in SIM_VALORES
 
 
