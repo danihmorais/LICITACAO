@@ -3,8 +3,10 @@ import json
 import os
 from datetime import datetime
 import traceback
+import config
 from montador_variaveis import montar_variaveis_fixas, filtrar_chaves_docx
-from processador_docx import modificar_documento, extrair_placeholders_modelos
+from processador_docx import modificar_documento
+
 
 def _valor_vazio(valor):
     if valor is None:
@@ -15,8 +17,19 @@ def _valor_vazio(valor):
         "nao informado", "[não informado]", "[nao informado]", "[n?o informado]"
     ]
 
+
+def _garantir_caminho_seguro(base, caminho):
+    abs_base = os.path.abspath(base)
+    abs_caminho = os.path.abspath(os.path.join(base, caminho))
+    if not abs_caminho.startswith(abs_base):
+        raise ValueError("Acesso não autorizado a diretório externo.")
+    return abs_caminho
+
+
 def processar():
     try:
+        if hasattr(sys.stdin, 'reconfigure'):
+            sys.stdin.reconfigure(encoding='utf-8')
         input_data = sys.stdin.read()
         if not input_data:
             return
@@ -28,9 +41,12 @@ def processar():
             dados_ia = payload.get("dados_ia", {})
             dados_usuario = payload.get("dados_usuario", {})
             preenchimentos_manuais = payload.get("preenchimentos_manuais", {})
-            pasta_saida = payload.get("pasta_saida", "saida")
-            pasta_modelos = payload.get("pasta_modelos", "modelos")
+            pasta_saida_raw = payload.get("pasta_saida", "saida")
+            pasta_modelos_raw = payload.get("pasta_modelos", "modelos")
             arquivos_base = payload.get("arquivos_base", [])
+
+            pasta_modelos = _garantir_caminho_seguro(config.EXECUTABLE_DIR, pasta_modelos_raw)
+            pasta_saida = _garantir_caminho_seguro(config.EXECUTABLE_DIR, pasta_saida_raw)
 
             modificacoes = filtrar_chaves_docx(montar_variaveis_fixas(dados_usuario))
             
@@ -38,16 +54,7 @@ def processar():
                 chave_docx = chave if chave.startswith("{{") and chave.endswith("}}") else f"{{{{{chave}}}}}"
                 modificacoes[chave_docx] = valor
 
-            aliases = [
-                ("{{ESTIMATIVA}}", "{{ESTIMATIVA_QUANTIDADES}}"),
-                ("{{RESULTADOS}}", "{{RESULTADOS_ESPERADOS}}"),
-                ("{{OBRIG_CONTRATADA}}", "{{OBRIGACOES_CONTRATADA}}"),
-                ("{{SOLUCAO}}", "{{ESPECIFICACAO_TECNICA}}"),
-                ("{{PARCELAMENTO}}", "{{CRITERIOS_JUSTIFICATIVA_ETP}}"),
-                ("{{IMPAC_AMB}}", "{{CRITERIOS_SUSTENTABILIDADE}}"),
-            ]
-
-            for chave1, chave2 in aliases:
+            for chave1, chave2 in config.ALIASES:
                 val1, val2 = modificacoes.get(chave1), modificacoes.get(chave2)
                 vazio1, vazio2 = _valor_vazio(val1), _valor_vazio(val2)
                 if not vazio1 and vazio2:
@@ -60,24 +67,11 @@ def processar():
 
             itens_json = modificacoes.get("{{ITENS}}")
             if not _valor_vazio(itens_json):
-                try:
-                    itens = json.loads(itens_json) if isinstance(itens_json, str) else itens_json
-                    colunas_remover = {"Vlr Unit. (R$)", "Vlr Unit", "Valor Unitário", "Valor Unitario", "Total", "Valor Total"}
-                    modificacoes["{{ITENS_SEMVALOR}}"] = json.dumps([{k: v for k, v in item.items() if k not in colunas_remover} for item in itens], ensure_ascii=False)
-                except Exception:
-                    modificacoes["{{ITENS_SEMVALOR}}"] = ""
+                itens = json.loads(itens_json) if isinstance(itens_json, str) else itens_json
+                colunas_remover = {"Vlr Unit. (R$)", "Vlr Unit", "Valor Unitário", "Valor Unitario", "Total", "Valor Total"}
+                modificacoes["{{ITENS_SEMVALOR}}"] = json.dumps([{k: v for k, v in item.items() if k not in colunas_remover} for item in itens], ensure_ascii=False)
 
             modificacoes.update(preenchimentos_manuais)
-
-            placeholders_modelos = set()
-            for arquivo in arquivos_base:
-                caminho = os.path.join(pasta_modelos, arquivo)
-                if os.path.exists(caminho):
-                    placeholders_modelos.update(extrair_placeholders_modelos(pasta_modelos, [arquivo]))
-
-            for ph in placeholders_modelos:
-                if ph not in modificacoes or _valor_vazio(modificacoes.get(ph)):
-                    modificacoes[ph] = "" if ph in {"{{PRORROGA_CLAUS}}"} else "[Não informado]"
 
             os.makedirs(pasta_saida, exist_ok=True)
             arquivos_gerados = []
@@ -93,6 +87,7 @@ def processar():
 
     except Exception as e:
         print(json.dumps({"sucesso": False, "erro": str(e), "traceback": traceback.format_exc()}))
+
 
 if __name__ == "__main__":
     processar()

@@ -49,6 +49,15 @@ DEFAULT_SETTINGS = {
     }
 }
 
+ALIASES = [
+    ("{{ESTIMATIVA}}", "{{ESTIMATIVA_QUANTIDADES}}"),
+    ("{{RESULTADOS}}", "{{RESULTADOS_ESPERADOS}}"),
+    ("{{OBRIG_CONTRATADA}}", "{{OBRIGACOES_CONTRATADA}}"),
+    ("{{SOLUCAO}}", "{{ESPECIFICACAO_TECNICA}}"),
+    ("{{PARCELAMENTO}}", "{{CRITERIOS_JUSTIFICATIVA_ETP}}"),
+    ("{{IMPAC_AMB}}", "{{CRITERIOS_SUSTENTABILIDADE}}"),
+]
+
 
 def deep_merge(default: dict, custom: dict) -> dict:
     result = default.copy()

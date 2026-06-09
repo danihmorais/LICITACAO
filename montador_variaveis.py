@@ -107,7 +107,6 @@ def montar_variaveis_fixas(dados_usuario: dict) -> dict:
     assinaturas_blocos = []
 
     if gestores_str and gestores_str != "[Não informado]":
-        gestores_formatados = _formatar_lista_assinaturas(gestores_str, cargos_gestores_str)
         nomes_g = [n.strip() for n in gestores_str.split(",") if n.strip()]
         cargos_g = [c.strip() for c in cargos_gestores_str.split(",") if c.strip()]
         for i, nome in enumerate(nomes_g):
