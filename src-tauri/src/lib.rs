@@ -20,6 +20,7 @@ async fn gerar_documentos(dados_usuario: Value, dados_ia: Value) -> Result<Strin
         .arg(main_py_path)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .spawn()
         .map_err(|e| e.to_string())?;
 
@@ -37,18 +38,25 @@ async fn gerar_documentos(dados_usuario: Value, dados_ia: Value) -> Result<Strin
                 "TR - BASE.docx"
             ]
         });
+
         stdin
             .write_all(payload.to_string().as_bytes())
             .map_err(|e| e.to_string())?;
     }
 
     let output = child.wait_with_output().map_err(|e| e.to_string())?;
+
+    if !output.status.success() {
+        return Err(String::from_utf8_lossy(&output.stderr).to_string());
+    }
+
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
 
 #[tauri::command]
 fn salvar_config_ia(provedor: String, chave: String) -> Result<(), String> {
     let settings_path = "settings.json";
+
     let mut settings = if let Ok(content) = fs::read_to_string(settings_path) {
         serde_json::from_str::<Value>(&content).unwrap_or(json!({}))
     } else {
@@ -63,18 +71,24 @@ fn salvar_config_ia(provedor: String, chave: String) -> Result<(), String> {
         serde_json::to_string_pretty(&settings).unwrap_or_default(),
     )
     .map_err(|e| e.to_string())?;
+
     Ok(())
 }
 
 #[tauri::command]
 fn ler_config_ia() -> Result<Value, String> {
     let settings_path = "settings.json";
+
     if let Ok(content) = fs::read_to_string(settings_path) {
         if let Ok(settings) = serde_json::from_str::<Value>(&content) {
             return Ok(settings);
         }
     }
-    Ok(json!({ "provedor": "gemini", "chave_api": "" }))
+
+    Ok(json!({
+        "provedor": "gemini",
+        "chave_api": ""
+    }))
 }
 
 #[tauri::command]
@@ -82,28 +96,13 @@ fn abrir_link(app: tauri::AppHandle, url: String) -> Result<(), String> {
     app.opener()
         .open_url(url, None::<&str>)
         .map_err(|e| e.to_string())?;
+
     Ok(())
 }
 
 #[tauri::command]
 fn aplicar_atualizacao(_url: String) -> Result<(), String> {
     Ok(())
-}
-
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![
-            gerar_documentos,
-            salvar_config_ia,
-            ler_config_ia,
-            abrir_link,
-            aplicar_atualizacao,
-            verificar_status_apis
-        ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
 }
 
 #[derive(serde::Serialize)]
@@ -123,16 +122,34 @@ async fn verificar_status_apis() -> Result<StatusApis, String> {
         .get("https://generativelanguage.googleapis.com")
         .send()
         .await
-        .is_ok();
+        .map(|r| r.status().is_success())
+        .unwrap_or(false);
 
     let openrouter = client
         .get("https://openrouter.ai/api/v1/models")
         .send()
         .await
-        .is_ok();
+        .map(|r| r.status().is_success())
+        .unwrap_or(false);
 
     Ok(StatusApis {
         gemini,
         openrouter,
     })
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .invoke_handler(tauri::generate_handler![
+            gerar_documentos,
+            salvar_config_ia,
+            ler_config_ia,
+            abrir_link,
+            aplicar_atualizacao,
+            verificar_status_apis
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
