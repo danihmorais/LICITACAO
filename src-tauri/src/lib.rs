@@ -99,8 +99,40 @@ pub fn run() {
             salvar_config_ia,
             ler_config_ia,
             abrir_link,
-            aplicar_atualizacao
+            aplicar_atualizacao,
+            verificar_status_apis
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[derive(serde::Serialize)]
+struct StatusApis {
+    gemini: bool,
+    openrouter: bool,
+}
+
+#[tauri::command]
+async fn verificar_status_apis() -> Result<StatusApis, String> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(5))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let gemini = client
+        .get("https://generativelanguage.googleapis.com")
+        .send()
+        .await
+        .is_ok();
+
+    let openrouter = client
+        .get("https://openrouter.ai/api/v1/models")
+        .send()
+        .await
+        .is_ok();
+
+    Ok(StatusApis {
+        gemini,
+        openrouter,
+    })
 }

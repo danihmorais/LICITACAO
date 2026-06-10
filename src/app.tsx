@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import logo from "./assets/logo.png";
 import { ThemeContext } from "./context/ThemeContext";
@@ -7,7 +7,8 @@ export default function App() {
   const [provedor, setProvedor] = useState("gemini");
   const [chaveApi, setChaveApi] = useState("");
   const [carregando, setCarregando] = useState(false);
-  
+  const [statusGemini, setStatusGemini] = useState<boolean | null>(null);
+  const [statusOpenRouter, setStatusOpenRouter] = useState<boolean | null>(null);
   const { theme, toggleTheme } = useContext(ThemeContext);
 
   const isDark = theme === "dark";
@@ -17,6 +18,31 @@ export default function App() {
   const textMuted = isDark ? "#9CA3AF" : "#6B7280";
   const inputBg = isDark ? "#374151" : "#FFFFFF";
   const inputBorder = isDark ? "#4B5563" : "#D1D5DB";
+
+  useEffect(() => {
+  verificarApis();
+
+  const timer = setInterval(() => {
+    verificarApis();
+  }, 60000);
+
+  return () => clearInterval(timer);
+}, []);
+
+  const verificarApis = async () => {
+    try {
+      const resultado = await invoke<{
+        gemini: boolean;
+        openrouter: boolean;
+      }>("verificar_status_apis");
+
+      setStatusGemini(resultado.gemini);
+      setStatusOpenRouter(resultado.openrouter);
+    } catch {
+      setStatusGemini(false);
+      setStatusOpenRouter(false);
+    }
+  };
 
   const fazerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +63,43 @@ export default function App() {
       : "https://aistudio.google.com/app/apikey";
     invoke("abrir_link", { url }); 
   };
+
+  const obterStatus = () => {
+  if (statusGemini === null || statusOpenRouter === null) {
+    return {
+      texto: "Verificando disponibilidade das APIs...",
+      cor: "#6B7280",
+    };
+  }
+
+  if (statusGemini && statusOpenRouter) {
+    return {
+      texto: "Conectado às APIs Gemini e OpenRouter",
+      cor: "#22C55E",
+    };
+  }
+
+  if (statusGemini && !statusOpenRouter) {
+    return {
+      texto: "Conectado à API Gemini (OpenRouter indisponível - Contate o suporte)",
+      cor: "#F59E0B",
+    };
+  }
+
+  if (!statusGemini && statusOpenRouter) {
+    return {
+      texto: "Conectado à API OpenRouter (Gemini indisponível - Contate o suporte)",
+      cor: "#F59E0B",
+    };
+  }
+
+  return {
+    texto: "Falha de conexão às APIs. Contate o suporte",
+    cor: "#EF4444",
+  };
+};
+
+  const status = obterStatus();
 
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: bgBody, transition: "background-color 0.3s", fontFamily: "sans-serif" }}>
@@ -59,11 +122,11 @@ export default function App() {
         <h3 style={{ fontSize: "16px", color: textColor, marginBottom: "16px" }}>Selecione o motor de Inteligência Artificial</h3>
         <div style={{ display: "flex", justifyContent: "center", gap: "24px", marginBottom: "35px", color: textColor }}>
           <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-            <input type="radio" value="gemini" checked={provedor === "gemini"} onChange={(e) => setProvedor(e.target.value)} />
+            <input type="radio" value="gemini" checked={provedor === "gemini"} onChange={(e) => setProvedor(e.target.value)} style={{accentColor: "#2563EB", outline: "none", boxShadow: "none"}} />
             Google Gemini
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-            <input type="radio" value="openrouter" checked={provedor === "openrouter"} onChange={(e) => setProvedor(e.target.value)} />
+            <input type="radio" value="openrouter" checked={provedor === "openrouter"} onChange={(e) => setProvedor(e.target.value)} style={{accentColor: "#2563EB", outline: "none", boxShadow: "none"}} />
             OpenRouter
           </label>
         </div>
@@ -90,8 +153,25 @@ export default function App() {
           </button>
         </form>
 
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "30px", fontSize: "12px", color: textMuted }}>
-          <span style={{ color: "#22C55E", fontWeight: "bold" }}>CONECTADO À API</span>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: "30px",
+            fontSize: "12px",
+            color: textMuted,
+          }}
+        >
+          <span
+            style={{
+              color: status.cor,
+              fontWeight: "bold",
+            }}
+          >
+            {status.texto}
+          </span>
+
           <span>@danih.morais</span>
         </div>
       </div>
