@@ -1,28 +1,36 @@
 use serde_json::{json, Value};
-use std::env;
 use std::fs;
 use std::io::Write;
 use std::process::{Command, Stdio};
+use tauri::{AppHandle, Manager, State};
 use tauri_plugin_opener::OpenerExt;
 
+pub struct AppState {
+    pub http_client: reqwest::Client,
+}
+
 #[tauri::command]
-async fn gerar_documentos(dados_usuario: Value, dados_ia: Value) -> Result<String, String> {
-    let exe_dir = env::current_exe().unwrap_or_default();
-    let base_dir = exe_dir.parent().unwrap_or(std::path::Path::new(""));
+pub fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value) -> Result<String, String> {
+    let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
+    let main_py_path = resource_dir.join("main.py");
+
+    if !main_py_path.exists() {
+        return Err("Arquivo main.py não encontrado nos recursos da aplicação.".to_string());
+    }
+
     let python_path = if cfg!(target_os = "windows") {
         "python"
     } else {
         "python3"
     };
-    let main_py_path = base_dir.join("main.py");
 
     let mut child = Command::new(python_path)
-        .arg(main_py_path)
+        .arg(&main_py_path)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|e| e.to_string())?;
+        .map_err(|_| "Falha ao iniciar o processo Python. Verifique se o Python está instalado e configurado no PATH do sistema.".to_string())?;
 
     if let Some(mut stdin) = child.stdin.take() {
         let payload = json!({
@@ -47,17 +55,19 @@ async fn gerar_documentos(dados_usuario: Value, dados_ia: Value) -> Result<Strin
     let output = child.wait_with_output().map_err(|e| e.to_string())?;
 
     if !output.status.success() {
-        return Err(String::from_utf8_lossy(&output.stderr).to_string());
+        return Err(String::from_utf8_lossy(&output.stderr).into_owned());
     }
 
-    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    Ok(String::from_utf8_lossy(&output.stdout).into_owned())
 }
 
 #[tauri::command]
-fn salvar_config_ia(provedor: String, chave: String) -> Result<(), String> {
-    let settings_path = "settings.json";
+pub fn salvar_config_ia(app: AppHandle, provedor: String, chave: String) -> Result<(), String> {
+    let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    fs::create_dir_all(&app_dir).map_err(|e| e.to_string())?;
+    let settings_path = app_dir.join("settings.json");
 
-    let mut settings = if let Ok(content) = fs::read_to_string(settings_path) {
+    let mut settings = if let Ok(content) = fs::read_to_string(&settings_path) {
         serde_json::from_str::<Value>(&content).unwrap_or(json!({}))
     } else {
         json!({})
@@ -76,8 +86,9 @@ fn salvar_config_ia(provedor: String, chave: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn ler_config_ia() -> Result<Value, String> {
-    let settings_path = "settings.json";
+pub fn ler_config_ia(app: AppHandle) -> Result<Value, String> {
+    let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let settings_path = app_dir.join("settings.json");
 
     if let Ok(content) = fs::read_to_string(settings_path) {
         if let Ok(settings) = serde_json::from_str::<Value>(&content) {
@@ -92,7 +103,7 @@ fn ler_config_ia() -> Result<Value, String> {
 }
 
 #[tauri::command]
-fn abrir_link(app: tauri::AppHandle, url: String) -> Result<(), String> {
+pub fn abrir_link(app: AppHandle, url: String) -> Result<(), String> {
     app.opener()
         .open_url(url, None::<&str>)
         .map_err(|e| e.to_string())?;
@@ -101,31 +112,26 @@ fn abrir_link(app: tauri::AppHandle, url: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn aplicar_atualizacao(_url: String) -> Result<(), String> {
+pub fn aplicar_atualizacao(_url: String) -> Result<(), String> {
     Ok(())
 }
 
 #[derive(serde::Serialize)]
-struct StatusApis {
-    gemini: bool,
-    openrouter: bool,
+pub struct StatusApis {
+    pub gemini: bool,
+    pub openrouter: bool,
 }
 
 #[tauri::command]
-async fn verificar_status_apis() -> Result<StatusApis, String> {
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(5))
-        .build()
-        .map_err(|e| e.to_string())?;
-
-    let gemini = client
+pub async fn verificar_status_apis(state: State<'_, AppState>) -> Result<StatusApis, String> {
+    let gemini = state.http_client
         .get("https://generativelanguage.googleapis.com")
         .send()
         .await
         .map(|r| r.status().is_success())
         .unwrap_or(false);
 
-    let openrouter = client
+    let openrouter = state.http_client
         .get("https://openrouter.ai/api/v1/models")
         .send()
         .await
@@ -140,8 +146,14 @@ async fn verificar_status_apis() -> Result<StatusApis, String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let http_client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(5))
+        .build()
+        .expect("Falha ao construir o cliente HTTP");
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .manage(AppState { http_client })
         .invoke_handler(tauri::generate_handler![
             gerar_documentos,
             salvar_config_ia,
