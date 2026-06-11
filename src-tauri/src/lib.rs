@@ -10,7 +10,7 @@ pub struct AppState {
 }
 
 #[tauri::command]
-pub fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value) -> Result<String, String> {
+fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value) -> Result<String, String> {
     let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
     let main_py_path = resource_dir.join("main.py");
 
@@ -62,7 +62,7 @@ pub fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value) -
 }
 
 #[tauri::command]
-pub fn salvar_config_ia(app: AppHandle, provedor: String, chave: String) -> Result<(), String> {
+fn salvar_config_ia(app: AppHandle, provedor: String, chave: String) -> Result<(), String> {
     let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
     fs::create_dir_all(&app_dir).map_err(|e| e.to_string())?;
     let settings_path = app_dir.join("settings.json");
@@ -86,7 +86,7 @@ pub fn salvar_config_ia(app: AppHandle, provedor: String, chave: String) -> Resu
 }
 
 #[tauri::command]
-pub fn ler_config_ia(app: AppHandle) -> Result<Value, String> {
+fn ler_config_ia(app: AppHandle) -> Result<Value, String> {
     let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
     let settings_path = app_dir.join("settings.json");
 
@@ -103,7 +103,7 @@ pub fn ler_config_ia(app: AppHandle) -> Result<Value, String> {
 }
 
 #[tauri::command]
-pub fn abrir_link(app: AppHandle, url: String) -> Result<(), String> {
+fn abrir_link(app: AppHandle, url: String) -> Result<(), String> {
     app.opener()
         .open_url(url, None::<&str>)
         .map_err(|e| e.to_string())?;
@@ -112,7 +112,7 @@ pub fn abrir_link(app: AppHandle, url: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn aplicar_atualizacao(_url: String) -> Result<(), String> {
+fn aplicar_atualizacao(_url: String) -> Result<(), String> {
     Ok(())
 }
 
@@ -123,7 +123,7 @@ pub struct StatusApis {
 }
 
 #[tauri::command]
-pub async fn verificar_status_apis(state: State<'_, AppState>) -> Result<StatusApis, String> {
+async fn verificar_status_apis(state: State<'_, AppState>) -> Result<StatusApis, String> {
     let gemini = state.http_client
         .get("https://generativelanguage.googleapis.com")
         .send()
