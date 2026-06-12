@@ -1,16 +1,12 @@
-// src/app.tsx
 import { useState, useContext, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import logo from "./assets/logo.png";
 import { ThemeContext } from "./context/ThemeContext";
 import Wizard from "./views/wizard";
-import { validarChaveGemini, validarChaveOpenRouter } from "./providers/llm";
+import ConfigIA from "./components/configIA";
 
 export default function App() {
   const [logado, setLogado] = useState(false);
-  const [provedor, setProvedor] = useState("gemini");
-  const [chaveApi, setChaveApi] = useState("");
-  const [carregando, setCarregando] = useState(false);
   const [statusGemini, setStatusGemini] = useState<boolean | null>(null);
   const [statusOpenRouter, setStatusOpenRouter] = useState<boolean | null>(null);
   const { theme, toggleTheme } = useContext(ThemeContext);
@@ -20,8 +16,6 @@ export default function App() {
   const bgCard = isDark ? "#1F2937" : "#FFFFFF";
   const textColor = isDark ? "#F9FAFB" : "#111827";
   const textMuted = isDark ? "#9CA3AF" : "#6B7280";
-  const inputBg = isDark ? "#374151" : "#FFFFFF";
-  const inputBorder = isDark ? "#4B5563" : "#D1D5DB";
 
   useEffect(() => {
     verificarApis();
@@ -38,12 +32,9 @@ export default function App() {
     try {
       const config: any = await invoke("ler_config_ia");
       if (config && config.chave_api) {
-        setProvedor(config.provedor || "gemini");
-        setChaveApi(config.chave_api);
         setLogado(true);
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const verificarApis = async () => {
@@ -59,40 +50,6 @@ export default function App() {
       setStatusGemini(false);
       setStatusOpenRouter(false);
     }
-  };
-
-  const fazerLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCarregando(true);
-
-    try {
-      let valida = false;
-      if (provedor === "gemini") {
-        valida = await validarChaveGemini(chaveApi);
-      } else {
-        valida = await validarChaveOpenRouter(chaveApi);
-      }
-
-      if (!valida) {
-        alert("Chave de API inválida ou sem comunicação.");
-        setCarregando(false);
-        return;
-      }
-
-      await invoke("salvar_config_ia", { provedor, chave: chaveApi });
-      setLogado(true);
-    } catch (error) {
-      alert("Erro ao validar a chave de API.");
-    } finally {
-      setCarregando(false);
-    }
-  };
-
-  const abrirAjuda = () => {
-    const url = provedor === "openrouter" 
-      ? "https://openrouter.ai/settings/keys" 
-      : "https://aistudio.google.com/app/apikey";
-    invoke("abrir_link", { url }); 
   };
 
   const obterStatus = () => {
@@ -154,39 +111,11 @@ export default function App() {
           Automatize a criação de DFD, ETP e TR com Inteligência Artificial
         </p>
 
-        <h3 style={{ fontSize: "16px", color: textColor, marginBottom: "16px" }}>Selecione o motor de Inteligência Artificial</h3>
-        <div style={{ display: "flex", justifyContent: "center", gap: "24px", marginBottom: "35px", color: textColor }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-            <input type="radio" value="gemini" checked={provedor === "gemini"} onChange={(e) => setProvedor(e.target.value)} style={{accentColor: "#2563EB", outline: "none", boxShadow: "none"}} />
-            Google Gemini
-          </label>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-            <input type="radio" value="openrouter" checked={provedor === "openrouter"} onChange={(e) => setProvedor(e.target.value)} style={{accentColor: "#2563EB", outline: "none", boxShadow: "none"}} />
-            OpenRouter
-          </label>
-        </div>
-
-        <form onSubmit={fazerLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <div style={{ textAlign: "left" }}>
-            <label style={{ fontWeight: "bold", fontSize: "14px", color: textColor, display: "block", marginBottom: "8px" }}>Chave de API</label>
-            <input 
-              type="password" 
-              placeholder="Cole sua chave de API aqui" 
-              value={chaveApi}
-              onChange={(e) => setChaveApi(e.target.value)}
-              required
-              style={{ width: "100%", padding: "14px", borderRadius: "14px", border: `1px solid ${inputBorder}`, backgroundColor: inputBg, color: textColor, fontSize: "14px", boxSizing: "border-box" }}
-            />
-          </div>
-          
-          <button type="button" onClick={abrirAjuda} style={{ background: "none", border: "none", color: "#3B82F6", cursor: "pointer", fontSize: "13px", textAlign: "left", padding: 0 }}>
-            Não tem uma chave? Saiba como obter gratuitamente.
-          </button>
-
-          <button type="submit" disabled={carregando} style={{ marginTop: "24px", padding: "16px", backgroundColor: "#2563EB", color: "white", border: "none", borderRadius: "14px", fontSize: "16px", fontWeight: "bold", cursor: carregando ? "not-allowed" : "pointer" }}>
-            {carregando ? "Conectando..." : "Acessar Sistema"}
-          </button>
-        </form>
+        <ConfigIA 
+          onSuccess={() => setLogado(true)} 
+          textoBotao="Acessar Sistema" 
+          temaEscuro={isDark} 
+        />
 
         <div
           style={{
