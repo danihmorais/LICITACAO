@@ -20,11 +20,7 @@ async fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value)
         return Err("Arquivo main.py não encontrado nos recursos da aplicação.".to_string());
     }
 
-    let python_path = if cfg!(target_os = "windows") {
-        "python"
-    } else {
-        "python3"
-    };
+    let python_path = if cfg!(target_os = "windows") { "python" } else { "python3" };
 
     let mut child = Command::new(python_path)
         .arg(&main_py_path)
@@ -32,7 +28,7 @@ async fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|_| "Falha ao iniciar o processo Python. Verifique se o Python está instalado e configurado no PATH do sistema.".to_string())?;
+        .map_err(|_| "Falha ao iniciar o processo Python. Verifique se o Python está instalado.".to_string())?;
 
     if let Some(mut stdin) = child.stdin.take() {
         let payload = json!({
@@ -50,10 +46,7 @@ async fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value)
             "app_data_dir": app_dir.to_string_lossy().to_string()
         });
 
-        stdin
-            .write_all(payload.to_string().as_bytes())
-            .await
-            .map_err(|e| e.to_string())?;
+        stdin.write_all(payload.to_string().as_bytes()).await.map_err(|e| e.to_string())?;
     }
 
     let output = child.wait_with_output().await.map_err(|e| e.to_string())?;
@@ -79,11 +72,8 @@ fn salvar_config_ia(app: AppHandle, provedor: String, chave: String) -> Result<(
     settings["provedor"] = json!(provedor);
     settings["chave_api"] = json!(chave);
 
-    fs::write(
-        settings_path,
-        serde_json::to_string_pretty(&settings).unwrap_or_default(),
-    )
-    .map_err(|e| e.to_string())?;
+    fs::write(settings_path, serde_json::to_string_pretty(&settings).unwrap_or_default())
+        .map_err(|e| e.to_string())?;
 
     Ok(())
 }
@@ -119,11 +109,8 @@ fn salvar_dados_usuario(app: AppHandle, dados: Value) -> Result<(), String> {
 
     settings["dados_usuario"] = dados;
 
-    fs::write(
-        settings_path,
-        serde_json::to_string_pretty(&settings).unwrap_or_default(),
-    )
-    .map_err(|e| e.to_string())?;
+    fs::write(settings_path, serde_json::to_string_pretty(&settings).unwrap_or_default())
+        .map_err(|e| e.to_string())?;
 
     Ok(())
 }
@@ -146,10 +133,7 @@ fn ler_dados_usuario(app: AppHandle) -> Result<Value, String> {
 
 #[tauri::command]
 fn abrir_link(app: AppHandle, url: String) -> Result<(), String> {
-    app.opener()
-        .open_url(url, None::<&str>)
-        .map_err(|e| e.to_string())?;
-
+    app.opener().open_url(url, None::<&str>).map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -157,7 +141,6 @@ fn abrir_link(app: AppHandle, url: String) -> Result<(), String> {
 async fn aplicar_atualizacao(url: String) -> Result<(), String> {
     let temp_dir = std::env::temp_dir();
     let exe_path = temp_dir.join("licita_ai_update.exe");
-
     let client = reqwest::Client::new();
     
     let response = client.get(&url)
@@ -171,14 +154,10 @@ async fn aplicar_atualizacao(url: String) -> Result<(), String> {
     }
 
     let bytes = response.bytes().await.map_err(|e| e.to_string())?;
-
     let mut file = std::fs::File::create(&exe_path).map_err(|e| e.to_string())?;
     std::io::Write::write_all(&mut file, &bytes).map_err(|e| e.to_string())?;
 
-    std::process::Command::new(exe_path)
-        .spawn()
-        .map_err(|e| e.to_string())?;
-
+    std::process::Command::new(exe_path).spawn().map_err(|e| e.to_string())?;
     std::process::exit(0);
 }
 
@@ -204,10 +183,7 @@ async fn verificar_status_apis(state: State<'_, AppState>) -> Result<StatusApis,
         .map(|r| r.status().is_success())
         .unwrap_or(false);
 
-    Ok(StatusApis {
-        gemini,
-        openrouter,
-    })
+    Ok(StatusApis { gemini, openrouter })
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

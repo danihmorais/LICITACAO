@@ -7,7 +7,6 @@ import config
 from montador_variaveis import montar_variaveis_fixas, filtrar_chaves_docx
 from processador_docx import modificar_documento
 
-
 def _valor_vazio(valor):
     if valor is None:
         return True
@@ -17,14 +16,12 @@ def _valor_vazio(valor):
         "nao informado", "[não informado]", "[nao informado]", "[n?o informado]"
     ]
 
-
 def _garantir_caminho_seguro(base, caminho):
     abs_base = os.path.abspath(base)
     abs_caminho = os.path.abspath(os.path.join(base, caminho))
     if not abs_caminho.startswith(abs_base):
         raise ValueError("Acesso não autorizado a diretório externo.")
     return abs_caminho
-
 
 def processar():
     try:
@@ -35,6 +32,11 @@ def processar():
             return
 
         payload = json.loads(input_data)
+        
+        app_data_dir = payload.get("app_data_dir")
+        if app_data_dir:
+            config.carregar_settings(app_data_dir)
+
         acao = payload.get("acao")
 
         if acao == "salvar_documentos":
@@ -45,7 +47,7 @@ def processar():
             pasta_modelos_raw = payload.get("pasta_modelos", "modelos")
             arquivos_base = payload.get("arquivos_base", [])
 
-            pasta_modelos = _garantir_caminho_seguro(config.EXECUTABLE_DIR, pasta_modelos_raw)
+            pasta_modelos = _garantir_caminho_seguro(config.BASE_DIR, pasta_modelos_raw)
             pasta_saida = _garantir_caminho_seguro(config.EXECUTABLE_DIR, pasta_saida_raw)
 
             modificacoes = filtrar_chaves_docx(montar_variaveis_fixas(dados_usuario))
@@ -87,7 +89,6 @@ def processar():
 
     except Exception as e:
         print(json.dumps({"sucesso": False, "erro": str(e), "traceback": traceback.format_exc()}))
-
 
 if __name__ == "__main__":
     processar()
