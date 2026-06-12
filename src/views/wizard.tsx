@@ -129,8 +129,10 @@ export default function Wizard() {
       });
 
       alert("Documentos gerados com sucesso!");
-    } catch (erro) {
-      alert("Erro na geração: " + erro);
+    } catch (erro: any) {
+      console.error("Erro completo:", erro);
+      const msg = typeof erro === 'string' ? erro : (erro.message || JSON.stringify(erro));
+      alert("Erro na geração: " + msg);
     } finally {
       setCarregando(false);
     }

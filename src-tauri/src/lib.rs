@@ -55,8 +55,9 @@ async fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value)
     }
 
     let output = child.wait_with_output().await.map_err(|e| e.to_string())?;
-
+    println!("Saída do Python: {:?}", String::from_utf8_lossy(&output.stdout));
     if !output.status.success() {
+        println!("Erro do Python: {:?}", String::from_utf8_lossy(&output.stderr));
         return Err(String::from_utf8_lossy(&output.stderr).into_owned());
     }
 
