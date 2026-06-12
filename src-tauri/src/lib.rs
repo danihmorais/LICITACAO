@@ -1,16 +1,18 @@
 use serde_json::{json, Value};
 use std::fs;
-use std::io::Write;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
+use tokio::io::AsyncWriteExt;
+use tokio::process::Command;
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_opener::OpenerExt;
+use tauri_plugin_updater::UpdaterExt;
 
 pub struct AppState {
     pub http_client: reqwest::Client,
 }
 
 #[tauri::command]
-fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value) -> Result<String, String> {
+async fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value) -> Result<String, String> {
     let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
     let main_py_path = resource_dir.join("main.py");
 
@@ -49,10 +51,11 @@ fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value) -> Re
 
         stdin
             .write_all(payload.to_string().as_bytes())
+            .await
             .map_err(|e| e.to_string())?;
     }
 
-    let output = child.wait_with_output().map_err(|e| e.to_string())?;
+    let output = child.wait_with_output().await.map_err(|e| e.to_string())?;
 
     if !output.status.success() {
         return Err(String::from_utf8_lossy(&output.stderr).into_owned());
@@ -112,7 +115,10 @@ fn abrir_link(app: AppHandle, url: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn aplicar_atualizacao(_url: String) -> Result<(), String> {
+async fn aplicar_atualizacao(app: AppHandle) -> Result<(), String> {
+    if let Some(update) = app.updater().map_err(|e| e.to_string())?.check().await.map_err(|e| e.to_string())? {
+        update.download_and_install(|_, _| {}, || {}).await.map_err(|e| e.to_string())?;
+    }
     Ok(())
 }
 
@@ -125,7 +131,7 @@ pub struct StatusApis {
 #[tauri::command]
 async fn verificar_status_apis(state: State<'_, AppState>) -> Result<StatusApis, String> {
     let gemini = state.http_client
-        .get("https://generativelanguage.googleapis.com")
+        .get("https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta")
         .send()
         .await
         .map(|r| r.status().is_success())
@@ -152,6 +158,9 @@ pub fn run() {
         .expect("Falha ao construir o cliente HTTP");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .manage(AppState { http_client })
         .invoke_handler(tauri::generate_handler![

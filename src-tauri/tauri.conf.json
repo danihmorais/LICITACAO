@@ -21,11 +21,19 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https:;"
     }
   },
   "bundle": {
     "active": true,
-    "targets": "all"
+    "targets": "all",
+    "resources": {
+      "../main.py": "main.py",
+      "../processador_docx.py": "processador_docx.py",
+      "../montador_variaveis.py": "montador_variaveis.py",
+      "../config.py": "config.py",
+      "../settings.json": "settings.json",
+      "../modelos": "modelos"
+    }
   }
 }

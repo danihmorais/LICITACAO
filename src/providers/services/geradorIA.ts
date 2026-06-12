@@ -38,7 +38,7 @@ const REGRAS_MINIMAS_TEXTO: Record<string, string> = {
     "VISTORIA_ETP": "Mínimo de 1 parágrafo, podendo ser resumido caso se trate de aquisição de bens.",
     "AMOSTRA_ETP": "Mínimo de 1 parágrafo, podendo ser resumido caso se trate de prestação de serviços. Caso se tenha optado por exigir amostra, apenas justifique a exigência, sem detalhar as características técnicas da amostra, que serão abordadas posteriormente no termo de referência.",
     "CONCLUSAO": "Mínimo de 3 parágrafos.",
-    "REQUISITOS_TR": "Você deve apenas enumerar cada um dos documentos adicionais solicitados nos REQUISITOS_ETP, separadamente, em ordem crescente, a partir do Documento 13, sempre colocando no formato (Documento XX) Yyyyyyyyyyyyyyyyyyyyy, em que XX é o número do documento adicional sugerido, e Yyyyyyyyyyyyyyyyyyyyy é o nome do documento sugerido. Se não houver nenhum documento adicional sugerido, escreva 'Não há documentos adicionais'.",
+    "REQUISITOS_TR": "Você deve apenas enumerar cada um dos documentos adicionais solicitados nos REQUISITOS_ETP, separadamente, em ordem crescente, a partir do Documento 13, sempre colocando no formato (Documento XX) Yyyyyyyyyyyyyyyyyyyyy, em que XX é o número do documento adicional sugerido, e Yyyyyyyyyyyyyyyyyyyyy é o nome do documento sugerido. Se não houver nenhum documento adicional sugerido, escreva 'Não há documentos adicionais'. Documentos sugeridos no ETP: {{REQUISITOS_ETP_ANTERIOR}}",
     "OBRIGACOES_CONTRATADA": "Mínimo de 15 obrigações separadas por quebra de linha.",
     "OBRIGACOES_CONTRANTE": "Mínimo de 10 obrigações separadas por quebra de linha.",
     "QUALIFICACAO_TECNICA": "Mínimo de 3 parágrafos.",
@@ -49,13 +49,21 @@ const REGRAS_MINIMAS_TEXTO: Record<string, string> = {
     "PRAZO_EXEC": "Texto completo contendo prazo por extenso e em algarismos.",
     "VALOR_ESTIMADO_APROXIMADO": "Calcule algum valor aproximado a {{VALOR_ESTIMADO}}, considerando o objeto, a necessidade, as condições de execução, o mercado, a solução adotada e demais aspectos relevantes. O valor deve ser apresentado por extenso e em algarismos, e deve ser justificado com base em dados de mercado, histórico de consumo, ou outras fontes confiáveis de informação. Deve ser informado apenas o R$ XX,XX",
     "LOCAL": "Mínimo de 1 parágrafo completo. Sempre será em algum endereço do Município de São Francisco/SP, mas detalhe o local de entrega ou execução, considerando aspectos logísticos e operacionais relevantes para a contratação. Horário quase sempre das 08h às 11h ou das 13h às 17h, salvo se outro tiver sido informado nas condições de execução.",
-    "AMOSTRA_TR": "Mínimo de 4 parágrafos, detalhando a parte prática da exigência de amostra, como a forma de apresentação, as características técnicas a serem observadas, o processo de avaliação da amostra, e demais aspectos operacionais relacionados à exigência de amostra. Caso se trate de prestação de serviços, o texto pode ser mais resumido, mas ainda assim deve detalhar a parte prática da exigência de amostra, como a forma de apresentação, o processo de avaliação da amostra, e demais aspectos operacionais relacionados à exigência de amostra. Deve se basear mais ou menos nisso: Deverão ser entregues amostras de todos os itens pelos licitantes provisoriamente vencedores no prazo máximo de 07 (sete) dias úteis, contadas da data de convocação via e-mail, que serão testadas e avaliadas pela comissão de avaliação definida pelo Departamento de XXXXXXXXX. As amostras postadas por correio ou transportadora não serão aceitas fora do prazo, e, desta maneira, a empresa que necessitar do envio por esses meios, deve ter o cuidado de enviar em tempo hábil, vez que o prazo máximo de entrega é extremamente razoável. Os itens deverão ser entregues em sua embalagem ORIGINAL da marca que for cotada pelo licitante. As amostras deverão ser entregues, junto ao Setor de Licitação na Prefeitura Municipal, no endereço Av. Oscar Antônio da Costa, 1187, CEP 15710-011, São Francisco/SP, qual seja das 8h às 11h e 13h às 17h. A empresa participante que não realizar a entrega das amostras dentro do prazo concedido será desclassificada dos itens que necessitam de apresentação de amostra. Serão exigidos como critério de avaliação aquilo que consta do descritivo de cada item, e avaliados por comissão de avaliação, qual seja: {{fiscal}}, {{fiscal_cargo}}; {{gestor}}, {{gestor_cargo}}.",
+    "AMOSTRA_TR": "Mínimo de 4 parágrafos, detalhando a parte prática da exigência de amostra, como a forma de apresentação, as características técnicas a serem observadas, o processo de avaliação da amostra, e demais aspectos operacionais relacionados à exigência de amostra. Caso se trate de prestação de serviços, o texto pode ser mais resumido, mas ainda assim deve detalhar a parte prática da exigência de amostra, como a forma de apresentação, o processo de avaliação da amostra, e demais aspectos operacionais relacionados à exigência de amostra. Deve se basear mais ou menos nisso: Deverão ser entregues amostras de todos os itens pelos licitantes provisoriamente vencedores no prazo máximo de 07 (sete) dias úteis, contadas da data de convocação via e-mail, que serão testadas e avaliadas pela comissão de avaliação definida pelo Departamento de XXXXXXXXX. As amostras postadas por correio ou transportadora não serão aceitas fora do prazo, e, desta maneira, a empresa que necessitar do envio por esses meios, deve ter o cuidado de enviar em tempo hábil, vez que o prazo máximo de entrega é extremamente razoável. Os itens deverão ser entregues em sua embalagem ORIGINAL da marca que for cotada pelo licitante. As amostras deverão ser entregues, junto ao Setor de Licitação na Prefeitura Municipal, no endereço Av. Oscar Antônio da Costa, 1187, CEP 15710-011, São Francisco/SP, qual seja das 8h às 11h e 13h às 17h. A empresa participante que não realizar a entrega das amostras dentro do prazo concedido será desclassificada dos itens que necessitam de apresentação de amostra. Serão exigidos como critério de avaliação aquilo que consta do descritivo de cada item, e avaliados por comissão de avaliação, qual seja: {{FISCAL}}, {{FISCAL_CARGO}}; {{GESTOR}}, {{GESTOR_CARGO}}.",
 };
 
-function montarRegrasMinimas(chavesEtapa: string[]): string {
+function montarRegrasMinimas(chavesEtapa: string[], dadosUsuario: Record<string, string>): string {
+    const valorEstimado = dadosUsuario["{{VALOR_ESTIMADO}}"] || "R$ 0,00";
+    const requisitosEtpAnterior = dadosUsuario["REQUISITOS_ETP_ANTERIOR"] || "Não informados.";
+
     return chavesEtapa
         .filter(chave => REGRAS_MINIMAS_TEXTO[chave])
-        .map(chave => `- ${chave}: ${REGRAS_MINIMAS_TEXTO[chave]}`)
+        .map(chave => {
+            let regra = REGRAS_MINIMAS_TEXTO[chave];
+            regra = regra.replace("{{VALOR_ESTIMADO}}", valorEstimado);
+            regra = regra.replace("{{REQUISITOS_ETP_ANTERIOR}}", requisitosEtpAnterior);
+            return `- ${chave}: ${regra}`;
+        })
         .join("\n");
 }
 
@@ -72,7 +80,7 @@ function construirPrompt(dadosUsuario: Record<string, string>, meeppExclusivo: b
     const pacRaw = dadosUsuario["RAW_PAC"] || "";
     const instrumento = dadosUsuario["{{INSTRUMENTO}}"] || "";
     const vigencia = dadosUsuario["{{VIGENCIA}}"] || "";
-    const secretaria = dadosUsuario["{{SECRETARIA}}"] || "";
+    const secretaria = dadosUsuario["{{SECRETARIAS}}"] || "";
     
     const amostraOpt = (dadosUsuario["{{AMOST}}"] || "nao").toLowerCase();
     const vistoriaOpt = (dadosUsuario["{{VIST}}"] || "nao").toLowerCase();
@@ -163,7 +171,7 @@ ${diretrizExecucao}`;
     }
 
     const chavesEtapa = STAGE_CHAVES[etapa] || [];
-    const regrasMinimas = montarRegrasMinimas(chavesEtapa);
+    const regrasMinimas = montarRegrasMinimas(chavesEtapa, dadosUsuario);
 
     return `${regrasGerais}\n\n${basePrompt}\n\n${diretrizEtapa}\n\nREGRAS MÍNIMAS OBRIGATÓRIAS DE TAMANHO E PROFUNDIDADE:\n${regrasMinimas}\n\nESTRUTURA JSON OBRIGATÓRIA:\n${chaves}\n\nRETORNE APENAS O JSON VÁLIDO.`;
 }
