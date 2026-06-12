@@ -1,9 +1,13 @@
+// src/app.tsx
 import { useState, useContext, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import logo from "./assets/logo.png";
 import { ThemeContext } from "./context/ThemeContext";
+import Wizard from "./views/wizard";
+import { validarChaveGemini, validarChaveOpenRouter } from "./providers/llm";
 
 export default function App() {
+  const [logado, setLogado] = useState(false);
   const [provedor, setProvedor] = useState("gemini");
   const [chaveApi, setChaveApi] = useState("");
   const [carregando, setCarregando] = useState(false);
@@ -20,14 +24,27 @@ export default function App() {
   const inputBorder = isDark ? "#4B5563" : "#D1D5DB";
 
   useEffect(() => {
-  verificarApis();
-
-  const timer = setInterval(() => {
     verificarApis();
-  }, 60000);
+    verificarSessao();
 
-  return () => clearInterval(timer);
-}, []);
+    const timer = setInterval(() => {
+      verificarApis();
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const verificarSessao = async () => {
+    try {
+      const config: any = await invoke("ler_config_ia");
+      if (config && config.chave_api) {
+        setProvedor(config.provedor || "gemini");
+        setChaveApi(config.chave_api);
+        setLogado(true);
+      }
+    } catch (error) {
+    }
+  };
 
   const verificarApis = async () => {
     try {
@@ -47,9 +64,23 @@ export default function App() {
   const fazerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setCarregando(true);
-    
+
     try {
+      let valida = false;
+      if (provedor === "gemini") {
+        valida = await validarChaveGemini(chaveApi);
+      } else {
+        valida = await validarChaveOpenRouter(chaveApi);
+      }
+
+      if (!valida) {
+        alert("Chave de API inválida ou sem comunicação.");
+        setCarregando(false);
+        return;
+      }
+
       await invoke("salvar_config_ia", { provedor, chave: chaveApi });
+      setLogado(true);
     } catch (error) {
       alert("Erro ao validar a chave de API.");
     } finally {
@@ -65,41 +96,45 @@ export default function App() {
   };
 
   const obterStatus = () => {
-  if (statusGemini === null || statusOpenRouter === null) {
-    return {
-      texto: "Verificando disponibilidade das APIs...",
-      cor: "#6B7280",
-    };
-  }
+    if (statusGemini === null || statusOpenRouter === null) {
+      return {
+        texto: "Verificando disponibilidade das APIs...",
+        cor: "#6B7280",
+      };
+    }
 
-  if (statusGemini && statusOpenRouter) {
-    return {
-      texto: "Conectado às APIs Gemini e OpenRouter",
-      cor: "#22C55E",
-    };
-  }
+    if (statusGemini && statusOpenRouter) {
+      return {
+        texto: "Conectado às APIs Gemini e OpenRouter",
+        cor: "#22C55E",
+      };
+    }
 
-  if (statusGemini && !statusOpenRouter) {
-    return {
-      texto: "Conectado à API Gemini (OpenRouter indisponível - Contate o suporte)",
-      cor: "#F59E0B",
-    };
-  }
+    if (statusGemini && !statusOpenRouter) {
+      return {
+        texto: "Conectado à API Gemini (OpenRouter indisponível - Contate o suporte)",
+        cor: "#F59E0B",
+      };
+    }
 
-  if (!statusGemini && statusOpenRouter) {
-    return {
-      texto: "Conectado à API OpenRouter (Gemini indisponível - Contate o suporte)",
-      cor: "#F59E0B",
-    };
-  }
+    if (!statusGemini && statusOpenRouter) {
+      return {
+        texto: "Conectado à API OpenRouter (Gemini indisponível - Contate o suporte)",
+        cor: "#F59E0B",
+      };
+    }
 
-  return {
-    texto: "Falha de conexão às APIs. Contate o suporte",
-    cor: "#EF4444",
+    return {
+      texto: "Falha de conexão às APIs. Contate o suporte",
+      cor: "#EF4444",
+    };
   };
-};
 
   const status = obterStatus();
+
+  if (logado) {
+    return <Wizard />;
+  }
 
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: bgBody, transition: "background-color 0.3s", fontFamily: "sans-serif" }}>

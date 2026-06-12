@@ -1,3 +1,45 @@
+export async function validarChaveGemini(apiKey: string): Promise<boolean> {
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: "teste" }] }],
+        generationConfig: {
+          maxOutputTokens: 1
+        }
+      })
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function validarChaveOpenRouter(apiKey: string): Promise<boolean> {
+  try {
+    const url = "https://openrouter.ai/api/v1/chat/completions";
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-4o-mini",
+        max_tokens: 1,
+        messages: [{ role: "user", content: "teste" }]
+      })
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function gerarTextoGemini(prompt: string, apiKey: string, model: string = "gemini-1.5-flash"): Promise<any> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
   
