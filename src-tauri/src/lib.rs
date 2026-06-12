@@ -5,7 +5,6 @@ use tokio::io::AsyncWriteExt;
 use tokio::process::Command;
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_opener::OpenerExt;
-use tauri_plugin_updater::UpdaterExt;
 
 pub struct AppState {
     pub http_client: reqwest::Client,
@@ -115,11 +114,32 @@ fn abrir_link(app: AppHandle, url: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn aplicar_atualizacao(app: AppHandle) -> Result<(), String> {
-    if let Some(update) = app.updater().map_err(|e| e.to_string())?.check().await.map_err(|e| e.to_string())? {
-        update.download_and_install(|_, _| {}, || {}).await.map_err(|e| e.to_string())?;
+async fn aplicar_atualizacao(url: String) -> Result<(), String> {
+    let temp_dir = std::env::temp_dir();
+    let exe_path = temp_dir.join("licita_ai_update.exe");
+
+    let client = reqwest::Client::new();
+    
+    let response = client.get(&url)
+        .header("User-Agent", "licita-ai-updater")
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    
+    if !response.status().is_success() {
+        return Err(format!("Falha ao baixar o executável: Status {}", response.status()));
     }
-    Ok(())
+
+    let bytes = response.bytes().await.map_err(|e| e.to_string())?;
+
+    let mut file = std::fs::File::create(&exe_path).map_err(|e| e.to_string())?;
+    std::io::Write::write_all(&mut file, &bytes).map_err(|e| e.to_string())?;
+
+    std::process::Command::new(exe_path)
+        .spawn()
+        .map_err(|e| e.to_string())?;
+
+    std::process::exit(0);
 }
 
 #[derive(serde::Serialize)]
@@ -160,7 +180,6 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .manage(AppState { http_client })
         .invoke_handler(tauri::generate_handler![

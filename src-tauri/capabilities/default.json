@@ -7,7 +7,6 @@
     "opener:default",
     "dialog:allow-open",
     "fs:allow-read-file",
-    "fs:allow-read-dir",
-    "updater:default"
+    "fs:allow-read-dir"
   ]
 }

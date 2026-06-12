@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import Step1 from "./steps/step1";
 import Step2 from "./steps/step2";
@@ -18,7 +18,7 @@ export default function Wizard() {
     vistoria: false,
     execucao: "",
     secretarias: [],
-    contatosSecretarias: {},
+    contatosSecretarias: {} as Record<string, any[]>,
     gestores: [],
     fiscais: [],
     instrumento: "CONTRATO",
@@ -37,6 +37,7 @@ export default function Wizard() {
   });
   const [carregando, setCarregando] = useState(false);
   const [statusTexto, setStatusTexto] = useState("Iniciando...");
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const atualizarDados = (novosDados: Partial<typeof dados>) => {
     setDados((prev) => ({ ...prev, ...novosDados }));
@@ -51,6 +52,12 @@ export default function Wizard() {
     }
   }, [dados.itens]);
 
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+  }, [etapaAtual]);
+
   const validarEtapa = () => {
     switch (etapaAtual) {
       case 0:
@@ -58,7 +65,12 @@ export default function Wizard() {
       case 1:
         return dados.execucao.trim() !== "";
       case 2:
-        return dados.secretarias.length > 0;
+          return (
+            dados.secretarias.length > 0 &&
+            dados.secretarias.every((sec: string) =>
+            dados.contatosSecretarias[sec]?.length > 0
+          )
+      );
       case 3:
         return dados.gestores.length > 0 && dados.fiscais.length > 0;
       case 4:
@@ -176,9 +188,11 @@ export default function Wizard() {
         <span style={{ color: "#6B7280", fontWeight: "bold", fontSize: "14px" }}>Passo {etapaAtual + 1} de 5</span>
       </div>
       
-      <div style={{ flex: 1, padding: "0 40px", overflow: "hidden" }}>
-        <div style={{ height: "100%", background: "white", borderRadius: "24px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)", border: "1px solid #E5E7EB", overflowY: "auto", padding: "32px" }}>
-          {renderizarEtapa()}
+      <div ref={scrollRef} style={{ flex: 1, padding: "0 40px", overflow: "hidden",}}>
+        <div style={{ height: "100%", background: "white", borderRadius: "24px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)", border: "1px solid #E5E7EB", padding: "16px", }}>
+          <div style={{ height: "100%", overflowY: "auto", padding: "16px", }}>
+            {renderizarEtapa()}
+          </div>
         </div>
       </div>
 

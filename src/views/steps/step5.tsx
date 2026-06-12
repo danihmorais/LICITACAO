@@ -1,6 +1,57 @@
 import React from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 
+const styles = {
+  container: { display: "flex", flexDirection: "column" as const, gap: "28px" },
+  sectionGroup: { display: "flex", flexDirection: "column" as const },
+  section: { display: "flex", flexDirection: "column" as const, gap: "12px", alignItems: "flex-start" },
+  sectionMargin: { display: "flex", flexDirection: "column" as const, gap: "12px", marginBottom: "16px", alignItems: "flex-start" },
+  title: { fontSize: "16px", margin: "0 0 16px 0", color: "#111827", fontWeight: "bold" as const },
+  titleCompact: { fontSize: "16px", margin: "0 0 4px 0", color: "#111827", fontWeight: "bold" as const },
+  subtitle: { color: "#6B7280", margin: "0 0 16px 0", fontSize: "13px", fontStyle: "italic" },
+  subtitleMargin: { color: "#6B7280", margin: "0 0 8px 0", fontSize: "13px" },
+  label: { display: "flex", flexDirection: "row" as const, alignItems: "center", justifyContent: "flex-start", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151", width: "max-content", margin: 0, padding: 0 },
+  checkboxLabel: (disabled: boolean) => ({ display: "flex", flexDirection: "row" as const, alignItems: "center", justifyContent: "flex-start", gap: "8px", cursor: disabled ? "not-allowed" : "pointer", fontSize: "14px", color: "#374151", opacity: disabled ? 0.5 : 1, width: "max-content", margin: 0, padding: 0 }),
+  radioInput: { margin: 0, padding: 0, width: "16px", height: "16px", cursor: "pointer", flexShrink: 0 },
+  labelText: { margin: 0, padding: 0, flexShrink: 0 },
+  justificationBox: (error: boolean) => ({ background: "#F9FAFB", padding: "16px", borderRadius: "12px", border: error ? "1px solid #DC2626" : "1px solid #E5E7EB", boxSizing: "border-box" as const, display: "flex", flexDirection: "column" as const }),
+  justificationTitle: { fontWeight: "bold" as const, fontSize: "13px", color: "#374151", display: "block", marginBottom: "8px" },
+  textarea: (error: boolean) => ({ width: "100%", padding: "12px", borderRadius: "8px", border: error ? "1px solid #DC2626" : "1px solid #D1D5DB", fontSize: "13px", minHeight: "60px", resize: "vertical" as const, boxSizing: "border-box" as const, fontFamily: "inherit" }),
+  textareaLarge: (error: boolean) => ({ flex: 1, width: "100%", padding: "12px", borderRadius: "12px", border: error ? "1px solid #DC2626" : "1px solid #D1D5DB", minHeight: "80px", fontSize: "14px", resize: "vertical" as const, boxSizing: "border-box" as const, fontFamily: "inherit" }),
+  errorText: { color: "#DC2626", fontSize: "12px", display: "block", marginTop: "4px" },
+  asterisk: { color: "#DC2626" },
+  counterWrapper: { display: "flex", alignItems: "center", gap: "8px" },
+  btn: { width: "40px", height: "40px", borderRadius: "10px", background: "#F3F4F6", border: "1px solid #D1D5DB", fontSize: "18px", fontWeight: "bold" as const, cursor: "pointer", color: "#374151", display: "flex", alignItems: "center", justifyContent: "center" },
+  counterInput: { width: "60px", height: "40px", textAlign: "center" as const, borderRadius: "10px", border: "1px solid #D1D5DB", fontSize: "16px", fontWeight: "bold" as const, boxSizing: "border-box" as const },
+  select: { height: "40px", padding: "0 12px", borderRadius: "10px", border: "1px solid #D1D5DB", fontSize: "14px", background: "white", marginLeft: "8px", cursor: "pointer", boxSizing: "border-box" as const },
+  attachWrapper: { display: "flex", gap: "16px", alignItems: "flex-start" },
+  attachBtn: (hasImg: boolean) => ({ padding: "0 24px", height: "44px", background: hasImg ? "#10B981" : "#2563EB", color: "white", border: "none", borderRadius: "12px", fontWeight: "bold" as const, fontSize: "14px", cursor: "pointer", whiteSpace: "nowrap" as const, display: "flex", alignItems: "center", justifyContent: "center" })
+};
+
+const RadioOption = ({ label, value, checked, onChange }: any) => (
+  <label style={styles.label}>
+    <input type="radio" value={value} checked={checked} onChange={onChange} style={styles.radioInput} />
+    <span style={styles.labelText}>{label}</span>
+  </label>
+);
+
+const JustificationBox = ({ label, value, onChange, errorMsg }: any) => {
+  const hasError = value.trim() === "";
+  return (
+    <div style={styles.justificationBox(hasError)}>
+      <label style={styles.justificationTitle}>
+        {label} <span style={styles.asterisk}>*</span>
+      </label>
+      <textarea
+        value={value}
+        onChange={onChange}
+        style={styles.textarea(hasError)}
+      />
+      {hasError && <span style={styles.errorText}>{errorMsg}</span>}
+    </div>
+  );
+};
+
 export default function Step5({ dados, atualizarDados }: any) {
   const handleAnexarImagem = async () => {
     try {
@@ -29,143 +80,123 @@ export default function Step5({ dados, atualizarDados }: any) {
   const faltaDotacao = dados.dotacao.trim() === "" && !dados.caminhoImagemDotacao;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
-      <div>
-        <h2 style={{ fontSize: "16px", margin: "0 0 16px 0", color: "#111827" }}>Tipo de Instrumento</h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "16px" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-            <input type="radio" value="CONTRATO" checked={dados.instrumento === "CONTRATO"} onChange={(e) => atualizarDados({ instrumento: e.target.value, prorrogar: dados.prorrogar })} />
-            CONTRATO (Certeza da quantidade)
-          </label>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-            <input type="radio" value="ATA" checked={dados.instrumento === "ATA"} onChange={(e) => atualizarDados({ instrumento: e.target.value, prorrogar: dados.prorrogar })} />
-            ATA DE REGISTRO DE PREÇOS (Sem certeza da quantidade)
-          </label>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-            <input type="radio" value="SEM_CONTRATO" checked={dados.instrumento === "SEM_CONTRATO"} onChange={(e) => atualizarDados({ instrumento: e.target.value, prorrogar: false })} />
-            SEM CONTRATO (Dispensa pequeno valor)
-          </label>
+    <div style={styles.container}>
+      <div style={styles.sectionGroup}>
+        <h2 style={styles.title}>Tipo de Instrumento</h2>
+        <div style={styles.sectionMargin}>
+          <RadioOption 
+            label="CONTRATO (Certeza da quantidade)" 
+            value="CONTRATO" 
+            checked={dados.instrumento === "CONTRATO"} 
+            onChange={(e: any) => atualizarDados({ instrumento: e.target.value, prorrogar: dados.prorrogar })} 
+          />
+          <RadioOption 
+            label="ATA DE REGISTRO DE PREÇOS (Sem certeza da quantidade)" 
+            value="ATA" 
+            checked={dados.instrumento === "ATA"} 
+            onChange={(e: any) => atualizarDados({ instrumento: e.target.value, prorrogar: dados.prorrogar })} 
+          />
+          <RadioOption 
+            label="SEM CONTRATO (Dispensa pequeno valor)" 
+            value="SEM_CONTRATO" 
+            checked={dados.instrumento === "SEM_CONTRATO"} 
+            onChange={(e: any) => atualizarDados({ instrumento: e.target.value, prorrogar: false })} 
+          />
         </div>
-        <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: dados.instrumento === "SEM_CONTRATO" ? "not-allowed" : "pointer", fontSize: "14px", color: "#374151", opacity: dados.instrumento === "SEM_CONTRATO" ? 0.5 : 1 }}>
+        <label style={styles.checkboxLabel(dados.instrumento === "SEM_CONTRATO")}>
           <input 
             type="checkbox" 
             checked={dados.prorrogar} 
             disabled={dados.instrumento === "SEM_CONTRATO"}
-            onChange={(e) => atualizarDados({ prorrogar: e.target.checked })} 
+            onChange={(e) => atualizarDados({ prorrogar: e.target.checked })}
+            style={styles.radioInput}
           />
-          Permitir prorrogação?
+          <span style={styles.labelText}>Permitir prorrogação?</span>
         </label>
       </div>
 
-      <div>
-        <h2 style={{ fontSize: "16px", margin: "0 0 16px 0", color: "#111827" }}>Participação ME/EPP</h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-            <input type="radio" value="SIM" checked={dados.meepp === "SIM"} onChange={(e) => atualizarDados({ meepp: e.target.value })} />
-            Exclusiva para ME/EPP (Até R$ 80.000,00)
-          </label>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-            <input type="radio" value="NAO" checked={dados.meepp === "NAO"} onChange={(e) => atualizarDados({ meepp: e.target.value })} />
-            Não Exclusiva (Maior que R$ 80.000,00 ou ampla participação)
-          </label>
+      <div style={styles.sectionGroup}>
+        <h2 style={styles.title}>Participação ME/EPP</h2>
+        <div style={styles.section}>
+          <RadioOption 
+            label="Exclusiva para ME/EPP (Até R$ 80.000,00)" 
+            value="SIM" 
+            checked={dados.meepp === "SIM"} 
+            onChange={(e: any) => atualizarDados({ meepp: e.target.value })} 
+          />
+          <RadioOption 
+            label="Não Exclusiva (Maior que R$ 80.000,00 ou ampla participação)" 
+            value="NAO" 
+            checked={dados.meepp === "NAO"} 
+            onChange={(e: any) => atualizarDados({ meepp: e.target.value })} 
+          />
         </div>
       </div>
 
-      <div>
-        <h2 style={{ fontSize: "16px", margin: "0 0 4px 0", color: "#111827" }}>Critério de Julgamento</h2>
-        <p style={{ color: "#6B7280", margin: "0 0 16px 0", fontSize: "13px", fontStyle: "italic" }}>
+      <div style={styles.sectionGroup}>
+        <h2 style={styles.titleCompact}>Critério de Julgamento</h2>
+        <p style={styles.subtitle}>
           {temLote 
             ? "Foi detectado o uso de lotes na listagem de itens. Apenas a opção de julgamento por Lote está disponível." 
             : "Regra geral da Lei 14.133/21: A adjudicação deve ser preferencialmente por ITEM para ampliar a concorrência."}
         </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "16px" }}>
+        <div style={styles.sectionMargin}>
           {!temLote && (
             <>
-              <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-                <input type="radio" value="ITEM" checked={dados.criterio === "ITEM"} onChange={(e) => atualizarDados({ criterio: e.target.value })} />
-                Menor preço por item
-              </label>
-              <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-                <input type="radio" value="GLOBAL" checked={dados.criterio === "GLOBAL"} onChange={(e) => atualizarDados({ criterio: e.target.value })} />
-                Menor preço global
-              </label>
+              <RadioOption label="Menor preço por item" value="ITEM" checked={dados.criterio === "ITEM"} onChange={(e: any) => atualizarDados({ criterio: e.target.value })} />
+              <RadioOption label="Menor preço global" value="GLOBAL" checked={dados.criterio === "GLOBAL"} onChange={(e: any) => atualizarDados({ criterio: e.target.value })} />
             </>
           )}
           {temLote && (
-            <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-              <input type="radio" value="LOTE" checked={dados.criterio === "LOTE"} onChange={(e) => atualizarDados({ criterio: e.target.value })} />
-              Menor preço por lote
-            </label>
+            <RadioOption label="Menor preço por lote" value="LOTE" checked={dados.criterio === "LOTE"} onChange={(e: any) => atualizarDados({ criterio: e.target.value })} />
           )}
         </div>
 
         {(dados.criterio === "GLOBAL" || dados.criterio === "LOTE") && (
-          <div style={{ background: "#F9FAFB", padding: "16px", borderRadius: "12px", border: dados.motivoCriterio.trim() === "" ? "1px solid #DC2626" : "1px solid #E5E7EB" }}>
-            <label style={{ fontWeight: "bold", fontSize: "13px", color: "#374151", display: "block", marginBottom: "8px" }}>
-              Motivação para o agrupamento (Global/Lote): <span style={{ color: "#DC2626" }}>*</span>
-            </label>
-            <textarea 
-              value={dados.motivoCriterio}
-              onChange={(e) => atualizarDados({ motivoCriterio: e.target.value })}
-              style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #D1D5DB", fontSize: "13px", minHeight: "60px", resize: "vertical", boxSizing: "border-box" }}
-            />
-            {dados.motivoCriterio.trim() === "" && <span style={{ color: "#DC2626", fontSize: "12px", display: "block", marginTop: "4px" }}>Este campo é obrigatório.</span>}
-          </div>
+          <JustificationBox 
+            label="Motivação para o agrupamento (Global/Lote):"
+            value={dados.motivoCriterio}
+            onChange={(e: any) => atualizarDados({ motivoCriterio: e.target.value })}
+            errorMsg="Este campo é obrigatório."
+          />
         )}
       </div>
 
-      <div>
-        <h2 style={{ fontSize: "16px", margin: "0 0 4px 0", color: "#111827" }}>Modalidade</h2>
-        <p style={{ color: "#6B7280", margin: "0 0 16px 0", fontSize: "13px", fontStyle: "italic" }}>Regra geral da Lei 14.133/21: O Pregão Eletrônico é a modalidade obrigatória padrão.</p>
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "16px" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-            <input type="radio" value="PREGAO_ELETRONICO" checked={dados.modalidade === "PREGAO_ELETRONICO"} onChange={(e) => atualizarDados({ modalidade: e.target.value })} />
-            Pregão Eletrônico
-          </label>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-            <input type="radio" value="DISPENSA_EMAIL" checked={dados.modalidade === "DISPENSA_EMAIL"} onChange={(e) => atualizarDados({ modalidade: e.target.value })} />
-            Dispensa por e-mail
-          </label>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-            <input type="radio" value="DISPENSA_BLL" checked={dados.modalidade === "DISPENSA_BLL"} onChange={(e) => atualizarDados({ modalidade: e.target.value })} />
-            Dispensa com lances na BLL
-          </label>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-            <input type="radio" value="PREGAO_PRESENCIAL" checked={dados.modalidade === "PREGAO_PRESENCIAL"} onChange={(e) => atualizarDados({ modalidade: e.target.value })} />
-            Pregão Presencial
-          </label>
+      <div style={styles.sectionGroup}>
+        <h2 style={styles.titleCompact}>Modalidade</h2>
+        <p style={styles.subtitle}>Regra geral da Lei 14.133/21: O Pregão Eletrônico é a modalidade obrigatória padrão.</p>
+        <div style={styles.sectionMargin}>
+          <RadioOption label="Pregão Eletrônico" value="PREGAO_ELETRONICO" checked={dados.modalidade === "PREGAO_ELETRONICO"} onChange={(e: any) => atualizarDados({ modalidade: e.target.value })} />
+          <RadioOption label="Dispensa por e-mail" value="DISPENSA_EMAIL" checked={dados.modalidade === "DISPENSA_EMAIL"} onChange={(e: any) => atualizarDados({ modalidade: e.target.value })} />
+          <RadioOption label="Dispensa com lances na BLL" value="DISPENSA_BLL" checked={dados.modalidade === "DISPENSA_BLL"} onChange={(e: any) => atualizarDados({ modalidade: e.target.value })} />
+          <RadioOption label="Pregão Presencial" value="PREGAO_PRESENCIAL" checked={dados.modalidade === "PREGAO_PRESENCIAL"} onChange={(e: any) => atualizarDados({ modalidade: e.target.value })} />
         </div>
 
         {dados.modalidade !== "PREGAO_ELETRONICO" && (
-          <div style={{ background: "#F9FAFB", padding: "16px", borderRadius: "12px", border: dados.motivoModalidade.trim() === "" ? "1px solid #DC2626" : "1px solid #E5E7EB" }}>
-            <label style={{ fontWeight: "bold", fontSize: "13px", color: "#374151", display: "block", marginBottom: "8px" }}>
-              {dados.modalidade === "PREGAO_PRESENCIAL" ? "Justificativa (Válido para municípios com até 20k habitantes até abril de 2027):" : "Justificativa (Atenção: Limite legal de até 65k ao todo ao longo do ano):"} <span style={{ color: "#DC2626" }}>*</span>
-            </label>
-            <textarea 
-              value={dados.motivoModalidade}
-              onChange={(e) => atualizarDados({ motivoModalidade: e.target.value })}
-              style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #D1D5DB", fontSize: "13px", minHeight: "60px", resize: "vertical", boxSizing: "border-box" }}
-            />
-            {dados.motivoModalidade.trim() === "" && <span style={{ color: "#DC2626", fontSize: "12px", display: "block", marginTop: "4px" }}>Este campo é obrigatório.</span>}
-          </div>
+          <JustificationBox 
+            label={dados.modalidade === "PREGAO_PRESENCIAL" ? "Justificativa (Válido para municípios com até 20k habitantes até abril de 2027):" : "Justificativa (Atenção: Limite legal de até 65k ao todo ao longo do ano):"}
+            value={dados.motivoModalidade}
+            onChange={(e: any) => atualizarDados({ motivoModalidade: e.target.value })}
+            errorMsg="Este campo é obrigatório."
+          />
         )}
       </div>
 
-      <div>
-        <h2 style={{ fontSize: "16px", margin: "0 0 16px 0", color: "#111827" }}>Vigência do Contrato/Ata (Máximo 1 ano)</h2>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <button onClick={decrementarVigencia} style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#F3F4F6", border: "1px solid #D1D5DB", fontSize: "18px", fontWeight: "bold", cursor: "pointer", color: "#374151" }}>-</button>
+      <div style={styles.sectionGroup}>
+        <h2 style={styles.title}>Vigência do Contrato/Ata (Máximo 1 ano)</h2>
+        <div style={styles.counterWrapper}>
+          <button onClick={decrementarVigencia} style={styles.btn}>-</button>
           <input 
             type="text" 
             value={dados.vigenciaNum} 
             readOnly 
-            style={{ width: "60px", height: "40px", textAlign: "center", borderRadius: "10px", border: "1px solid #D1D5DB", fontSize: "16px", fontWeight: "bold" }} 
+            style={styles.counterInput} 
           />
-          <button onClick={incrementarVigencia} style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#F3F4F6", border: "1px solid #D1D5DB", fontSize: "18px", fontWeight: "bold", cursor: "pointer", color: "#374151" }}>+</button>
+          <button onClick={incrementarVigencia} style={styles.btn}>+</button>
           <select 
             value={dados.vigenciaUnidade} 
             onChange={(e) => atualizarDados({ vigenciaUnidade: e.target.value })}
-            style={{ height: "40px", padding: "0 12px", borderRadius: "10px", border: "1px solid #D1D5DB", fontSize: "14px", background: "white", marginLeft: "8px", cursor: "pointer" }}
+            style={styles.select}
           >
             <option value="Dias">Dias</option>
             <option value="Meses">Meses</option>
@@ -174,53 +205,42 @@ export default function Step5({ dados, atualizarDados }: any) {
         </div>
       </div>
 
-      <div>
-        <h2 style={{ fontSize: "16px", margin: "0 0 16px 0", color: "#111827" }}>
-          Dotação Orçamentária <span style={{ color: "#DC2626" }}>*</span>
+      <div style={styles.sectionGroup}>
+        <h2 style={styles.title}>
+          Dotação Orçamentária <span style={styles.asterisk}>*</span>
         </h2>
-        <p style={{ color: "#6B7280", margin: "0 0 8px 0", fontSize: "13px" }}>Preencha o campo de texto ou anexe uma imagem do comprovante de dotação.</p>
-        <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+        <p style={styles.subtitleMargin}>Preencha o campo de texto ou anexe uma imagem do comprovante de dotação.</p>
+        <div style={styles.attachWrapper}>
           <textarea 
             value={dados.dotacao}
             onChange={(e) => atualizarDados({ dotacao: e.target.value })}
             placeholder="Descreva a dotação orçamentária..."
-            style={{ flex: 1, padding: "12px", borderRadius: "12px", border: faltaDotacao ? "1px solid #DC2626" : "1px solid #D1D5DB", minHeight: "80px", fontSize: "14px", resize: "vertical", boxSizing: "border-box" }}
+            style={styles.textareaLarge(faltaDotacao)}
           />
           <button 
             onClick={handleAnexarImagem} 
-            style={{ padding: "0 24px", height: "44px", background: dados.caminhoImagemDotacao ? "#10B981" : "#2563EB", color: "white", border: "none", borderRadius: "12px", fontWeight: "bold", fontSize: "14px", cursor: "pointer", whiteSpace: "nowrap" }}
+            style={styles.attachBtn(!!dados.caminhoImagemDotacao)}
           >
             {dados.caminhoImagemDotacao ? "Imagem Anexada ✓" : "Anexar Imagem"}
           </button>
         </div>
-        {faltaDotacao && <span style={{ color: "#DC2626", fontSize: "12px", display: "block", marginTop: "4px" }}>É obrigatório preencher a dotação ou anexar uma imagem.</span>}
+        {faltaDotacao && <span style={styles.errorText}>É obrigatório preencher a dotação ou anexar uma imagem.</span>}
       </div>
 
-      <div>
-        <h2 style={{ fontSize: "16px", margin: "0 0 16px 0", color: "#111827" }}>Plano Anual de Contratações (PAC)</h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "16px" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-            <input type="radio" value="SIM" checked={dados.pac === "SIM"} onChange={(e) => atualizarDados({ pac: e.target.value })} />
-            Sim, previsto no PAC
-          </label>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#374151" }}>
-            <input type="radio" value="NAO" checked={dados.pac === "NAO"} onChange={(e) => atualizarDados({ pac: e.target.value })} />
-            Não previsto no PAC
-          </label>
+      <div style={styles.sectionGroup}>
+        <h2 style={styles.title}>Plano Anual de Contratações (PAC)</h2>
+        <div style={styles.sectionMargin}>
+          <RadioOption label="Sim, previsto no PAC" value="SIM" checked={dados.pac === "SIM"} onChange={(e: any) => atualizarDados({ pac: e.target.value })} />
+          <RadioOption label="Não previsto no PAC" value="NAO" checked={dados.pac === "NAO"} onChange={(e: any) => atualizarDados({ pac: e.target.value })} />
         </div>
         
         {dados.pac === "NAO" && (
-          <div style={{ background: "#F9FAFB", padding: "16px", borderRadius: "12px", border: dados.motivoPac.trim() === "" ? "1px solid #DC2626" : "1px solid #E5E7EB" }}>
-            <label style={{ fontWeight: "bold", fontSize: "13px", color: "#374151", display: "block", marginBottom: "8px" }}>
-              Justificativa para a não inclusão no PAC: <span style={{ color: "#DC2626" }}>*</span>
-            </label>
-            <textarea 
-              value={dados.motivoPac}
-              onChange={(e) => atualizarDados({ motivoPac: e.target.value })}
-              style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #D1D5DB", fontSize: "13px", minHeight: "60px", resize: "vertical", boxSizing: "border-box" }}
-            />
-            {dados.motivoPac.trim() === "" && <span style={{ color: "#DC2626", fontSize: "12px", display: "block", marginTop: "4px" }}>Este campo é obrigatório.</span>}
-          </div>
+          <JustificationBox 
+            label="Justificativa para a não inclusão no PAC:"
+            value={dados.motivoPac}
+            onChange={(e: any) => atualizarDados({ motivoPac: e.target.value })}
+            errorMsg="Este campo é obrigatório."
+          />
         )}
       </div>
     </div>
