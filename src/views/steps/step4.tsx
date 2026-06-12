@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
 
 export default function Step4({ dados, atualizarDados }: any) {
   const [gestorNome, setGestorNome] = useState("");
@@ -13,11 +14,33 @@ export default function Step4({ dados, atualizarDados }: any) {
   const [modalFiscalAberto, setModalFiscalAberto] = useState(false);
 
   useEffect(() => {
-    const gSalvos = localStorage.getItem("licita_gestores_salvos");
-    const fSalvos = localStorage.getItem("licita_fiscais_salvos");
-    if (gSalvos) setGestoresSalvos(JSON.parse(gSalvos));
-    if (fSalvos) setFiscaisSalvos(JSON.parse(fSalvos));
+    invoke("ler_dados_usuario").then((dadosSalvos: any) => {
+      if (dadosSalvos) {
+        if (dadosSalvos.gestores_salvos) setGestoresSalvos(dadosSalvos.gestores_salvos);
+        if (dadosSalvos.fiscais_salvos) setFiscaisSalvos(dadosSalvos.fiscais_salvos);
+      }
+    }).catch(console.error);
   }, []);
+
+  const salvarGestoresNoBackend = async (novosGestores: any[]) => {
+    try {
+      const dados_usuario: any = await invoke("ler_dados_usuario") || {};
+      dados_usuario.gestores_salvos = novosGestores;
+      await invoke("salvar_dados_usuario", { dados: dados_usuario });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const salvarFiscaisNoBackend = async (novosFiscais: any[]) => {
+    try {
+      const dados_usuario: any = await invoke("ler_dados_usuario") || {};
+      dados_usuario.fiscais_salvos = novosFiscais;
+      await invoke("salvar_dados_usuario", { dados: dados_usuario });
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleAddGestor = () => {
     if (!gestorNome || !gestorCargo) return;
@@ -51,7 +74,7 @@ export default function Step4({ dados, atualizarDados }: any) {
     }
     const novosSalvos = [...gestoresSalvos, gestor];
     setGestoresSalvos(novosSalvos);
-    localStorage.setItem("licita_gestores_salvos", JSON.stringify(novosSalvos));
+    salvarGestoresNoBackend(novosSalvos);
     alert("Gestor salvo com sucesso!");
   };
 
@@ -63,7 +86,7 @@ export default function Step4({ dados, atualizarDados }: any) {
     }
     const novosSalvos = [...fiscaisSalvos, fiscal];
     setFiscaisSalvos(novosSalvos);
-    localStorage.setItem("licita_fiscais_salvos", JSON.stringify(novosSalvos));
+    salvarFiscaisNoBackend(novosSalvos);
     alert("Fiscal salvo com sucesso!");
   };
 
@@ -80,13 +103,13 @@ export default function Step4({ dados, atualizarDados }: any) {
   const handleApagarGestorSalvo = (index: number) => {
     const novosSalvos = gestoresSalvos.filter((_, i) => i !== index);
     setGestoresSalvos(novosSalvos);
-    localStorage.setItem("licita_gestores_salvos", JSON.stringify(novosSalvos));
+    salvarGestoresNoBackend(novosSalvos);
   };
 
   const handleApagarFiscalSalvo = (index: number) => {
     const novosSalvos = fiscaisSalvos.filter((_, i) => i !== index);
     setFiscaisSalvos(novosSalvos);
-    localStorage.setItem("licita_fiscais_salvos", JSON.stringify(novosSalvos));
+    salvarFiscaisNoBackend(novosSalvos);
   };
 
   return (
@@ -144,23 +167,23 @@ export default function Step4({ dados, atualizarDados }: any) {
                 <span style={{ fontSize: "13px", color: "#111827", fontWeight: "500" }}>{gestor.nome} — {gestor.cargo}</span>
                 <div style={{ display: "flex", gap: "6px" }}>
                   <div style={{ display: "flex", gap: "6px" }}>
-  <button 
-    onClick={() => handleSalvarGestor(gestor)}
-    disabled={gestoresSalvos.some(g => g.nome === gestor.nome && g.cargo === gestor.cargo)}
-    style={{ 
-      padding: "6px 12px", 
-      background: gestoresSalvos.some(g => g.nome === gestor.nome && g.cargo === gestor.cargo) ? "#9CA3AF" : "#10B981", 
-      color: "white", 
-      border: "none", 
-      borderRadius: "6px", 
-      fontWeight: "bold", 
-      fontSize: "11px", 
-      cursor: gestoresSalvos.some(g => g.nome === gestor.nome && g.cargo === gestor.cargo) ? "default" : "pointer" 
-    }}
-  >
-    {gestoresSalvos.some(g => g.nome === gestor.nome && g.cargo === gestor.cargo) ? "Já Salvo" : "Salvar Gestor"}
-  </button>
-  </div>
+                    <button 
+                      onClick={() => handleSalvarGestor(gestor)}
+                      disabled={gestoresSalvos.some(g => g.nome === gestor.nome && g.cargo === gestor.cargo)}
+                      style={{ 
+                        padding: "6px 12px", 
+                        background: gestoresSalvos.some(g => g.nome === gestor.nome && g.cargo === gestor.cargo) ? "#9CA3AF" : "#10B981", 
+                        color: "white", 
+                        border: "none", 
+                        borderRadius: "6px", 
+                        fontWeight: "bold", 
+                        fontSize: "11px", 
+                        cursor: gestoresSalvos.some(g => g.nome === gestor.nome && g.cargo === gestor.cargo) ? "default" : "pointer" 
+                      }}
+                    >
+                      {gestoresSalvos.some(g => g.nome === gestor.nome && g.cargo === gestor.cargo) ? "Já Salvo" : "Salvar Gestor"}
+                    </button>
+                  </div>
                   <button 
                     onClick={() => handleRemoveGestor(index)}
                     style={{ padding: "6px 12px", background: "#DC2626", color: "white", border: "none", borderRadius: "6px", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}
@@ -226,23 +249,23 @@ export default function Step4({ dados, atualizarDados }: any) {
                 <span style={{ fontSize: "13px", color: "#111827", fontWeight: "500" }}>{fiscal.nome} — {fiscal.cargo}</span>
                 <div style={{ display: "flex", gap: "6px" }}>
                   <div style={{ display: "flex", gap: "6px" }}>
-  <button 
-    onClick={() => handleSalvarFiscal(fiscal)}
-    disabled={fiscaisSalvos.some(f => f.nome === fiscal.nome && f.cargo === fiscal.cargo)}
-    style={{ 
-      padding: "6px 12px", 
-      background: fiscaisSalvos.some(f => f.nome === fiscal.nome && f.cargo === fiscal.cargo) ? "#9CA3AF" : "#10B981", 
-      color: "white", 
-      border: "none", 
-      borderRadius: "6px", 
-      fontWeight: "bold", 
-      fontSize: "11px", 
-      cursor: fiscaisSalvos.some(f => f.nome === fiscal.nome && f.cargo === fiscal.cargo) ? "default" : "pointer" 
-    }}
-  >
-    {fiscaisSalvos.some(f => f.nome === fiscal.nome && f.cargo === fiscal.cargo) ? "Já Salvo" : "Salvar Fiscal"}
-  </button>
-  </div>
+                    <button 
+                      onClick={() => handleSalvarFiscal(fiscal)}
+                      disabled={fiscaisSalvos.some(f => f.nome === fiscal.nome && f.cargo === fiscal.cargo)}
+                      style={{ 
+                        padding: "6px 12px", 
+                        background: fiscaisSalvos.some(f => f.nome === fiscal.nome && f.cargo === fiscal.cargo) ? "#9CA3AF" : "#10B981", 
+                        color: "white", 
+                        border: "none", 
+                        borderRadius: "6px", 
+                        fontWeight: "bold", 
+                        fontSize: "11px", 
+                        cursor: fiscaisSalvos.some(f => f.nome === fiscal.nome && f.cargo === fiscal.cargo) ? "default" : "pointer" 
+                      }}
+                    >
+                      {fiscaisSalvos.some(f => f.nome === fiscal.nome && f.cargo === fiscal.cargo) ? "Já Salvo" : "Salvar Fiscal"}
+                    </button>
+                  </div>
                   <button 
                     onClick={() => handleRemoveFiscal(index)}
                     style={{ padding: "6px 12px", background: "#DC2626", color: "white", border: "none", borderRadius: "6px", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}

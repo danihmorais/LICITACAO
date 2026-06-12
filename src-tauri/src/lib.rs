@@ -13,6 +13,7 @@ pub struct AppState {
 #[tauri::command]
 async fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value) -> Result<String, String> {
     let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
+    let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
     let main_py_path = resource_dir.join("main.py");
 
     if !main_py_path.exists() {
@@ -45,7 +46,8 @@ async fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value)
                 "DFD - BASE.docx",
                 "ETP - BASE.docx",
                 "TR - BASE.docx"
-            ]
+            ],
+            "app_data_dir": app_dir.to_string_lossy().to_string()
         });
 
         stdin
@@ -55,9 +57,7 @@ async fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value)
     }
 
     let output = child.wait_with_output().await.map_err(|e| e.to_string())?;
-    println!("Saída do Python: {:?}", String::from_utf8_lossy(&output.stdout));
     if !output.status.success() {
-        println!("Erro do Python: {:?}", String::from_utf8_lossy(&output.stderr));
         return Err(String::from_utf8_lossy(&output.stderr).into_owned());
     }
 
@@ -103,6 +103,45 @@ fn ler_config_ia(app: AppHandle) -> Result<Value, String> {
         "provedor": "gemini",
         "chave_api": ""
     }))
+}
+
+#[tauri::command]
+fn salvar_dados_usuario(app: AppHandle, dados: Value) -> Result<(), String> {
+    let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    fs::create_dir_all(&app_dir).map_err(|e| e.to_string())?;
+    let settings_path = app_dir.join("settings.json");
+
+    let mut settings = if let Ok(content) = fs::read_to_string(&settings_path) {
+        serde_json::from_str::<Value>(&content).unwrap_or(json!({}))
+    } else {
+        json!({})
+    };
+
+    settings["dados_usuario"] = dados;
+
+    fs::write(
+        settings_path,
+        serde_json::to_string_pretty(&settings).unwrap_or_default(),
+    )
+    .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
+fn ler_dados_usuario(app: AppHandle) -> Result<Value, String> {
+    let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let settings_path = app_dir.join("settings.json");
+
+    if let Ok(content) = fs::read_to_string(settings_path) {
+        if let Ok(settings) = serde_json::from_str::<Value>(&content) {
+            if let Some(dados) = settings.get("dados_usuario") {
+                return Ok(dados.clone());
+            }
+        }
+    }
+
+    Ok(json!({}))
 }
 
 #[tauri::command]
@@ -187,6 +226,8 @@ pub fn run() {
             gerar_documentos,
             salvar_config_ia,
             ler_config_ia,
+            salvar_dados_usuario,
+            ler_dados_usuario,
             abrir_link,
             aplicar_atualizacao,
             verificar_status_apis

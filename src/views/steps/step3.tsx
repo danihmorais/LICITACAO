@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
 
 const SECRETARIAS_DEFAULT = [
   "Gabinete do Prefeito",
@@ -24,9 +25,22 @@ export default function Step3({ dados = { secretarias: [], contatosSecretarias: 
   const contatosStr = JSON.stringify(contatosSecretarias);
 
   useEffect(() => {
-    const salvos = localStorage.getItem("licita_contatos_salvos");
-    if (salvos) setContatosSalvos(JSON.parse(salvos));
+    invoke("ler_dados_usuario").then((dadosSalvos: any) => {
+      if (dadosSalvos && dadosSalvos.contatos_salvos) {
+        setContatosSalvos(dadosSalvos.contatos_salvos);
+      }
+    }).catch(console.error);
   }, []);
+
+  const salvarContatosNoBackend = async (novosContatos: any[]) => {
+    try {
+      const dados_usuario: any = await invoke("ler_dados_usuario") || {};
+      dados_usuario.contatos_salvos = novosContatos;
+      await invoke("salvar_dados_usuario", { dados: dados_usuario });
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     const isValido = secretarias.length > 0 && secretarias.every((sec: string) => contatosSecretarias[sec] && contatosSecretarias[sec].length > 0);
@@ -84,7 +98,7 @@ export default function Step3({ dados = { secretarias: [], contatosSecretarias: 
 
     const novosSalvos = [...contatosSalvos, contato];
     setContatosSalvos(novosSalvos);
-    localStorage.setItem("licita_contatos_salvos", JSON.stringify(novosSalvos));
+    salvarContatosNoBackend(novosSalvos);
     alert("Contato salvo com sucesso!");
   };
 
@@ -98,7 +112,7 @@ export default function Step3({ dados = { secretarias: [], contatosSecretarias: 
   const handleRemoverContatoSalvo = (index: number) => {
     const novosSalvos = contatosSalvos.filter((_, i) => i !== index);
     setContatosSalvos(novosSalvos);
-    localStorage.setItem("licita_contatos_salvos", JSON.stringify(novosSalvos));
+    salvarContatosNoBackend(novosSalvos);
   };
 
   return (
@@ -179,23 +193,23 @@ export default function Step3({ dados = { secretarias: [], contatosSecretarias: 
                         <span style={{ fontSize: "12px", color: "#111827" }}>{contato.email || "—"} | {contato.tel || "—"}</span>
                         <div style={{ display: "flex", gap: "6px" }}>
                           <div style={{ display: "flex", gap: "6px" }}>
-  <button 
-    onClick={() => handleSalvarContatoIndiv(contato)}
-    disabled={contatosSalvos.some(s => s.email === contato.email && s.tel === contato.tel)}
-    style={{ 
-      padding: "4px 8px", 
-      background: contatosSalvos.some(s => s.email === contato.email && s.tel === contato.tel) ? "#9CA3AF" : "#10B981", 
-      color: "white", 
-      border: "none", 
-      borderRadius: "6px", 
-      fontWeight: "bold", 
-      fontSize: "11px", 
-      cursor: contatosSalvos.some(s => s.email === contato.email && s.tel === contato.tel) ? "default" : "pointer" 
-    }}
-  >
-    {contatosSalvos.some(s => s.email === contato.email && s.tel === contato.tel) ? "Já Salvo" : "Salvar Contato"}
-  </button>
-</div>
+                            <button 
+                              onClick={() => handleSalvarContatoIndiv(contato)}
+                              disabled={contatosSalvos.some(s => s.email === contato.email && s.tel === contato.tel)}
+                              style={{ 
+                                padding: "4px 8px", 
+                                background: contatosSalvos.some(s => s.email === contato.email && s.tel === contato.tel) ? "#9CA3AF" : "#10B981", 
+                                color: "white", 
+                                border: "none", 
+                                borderRadius: "6px", 
+                                fontWeight: "bold", 
+                                fontSize: "11px", 
+                                cursor: contatosSalvos.some(s => s.email === contato.email && s.tel === contato.tel) ? "default" : "pointer" 
+                              }}
+                            >
+                              {contatosSalvos.some(s => s.email === contato.email && s.tel === contato.tel) ? "Já Salvo" : "Salvar Contato"}
+                            </button>
+                          </div>
                           <button 
                             onClick={() => handleRemoveContato(sec, idx)}
                             style={{ padding: "4px 8px", background: "#DC2626", color: "white", border: "none", borderRadius: "6px", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}

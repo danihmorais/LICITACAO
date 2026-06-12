@@ -32,7 +32,6 @@
       "../processador_docx.py": "processador_docx.py",
       "../montador_variaveis.py": "montador_variaveis.py",
       "../config.py": "config.py",
-      "../settings.json": "settings.json",
       "../modelos": "modelos"
     }
   }
