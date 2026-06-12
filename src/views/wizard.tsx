@@ -44,15 +44,6 @@ export default function Wizard() {
   };
 
   useEffect(() => {
-    const temLote = dados.itens.some((item: any) => item.lote && item.lote.toString().trim() !== "");
-    if (temLote && dados.criterio !== "LOTE") {
-      atualizarDados({ criterio: "LOTE" });
-    } else if (!temLote && dados.criterio !== "ITEM" && dados.criterio !== "GLOBAL") {
-      atualizarDados({ criterio: "ITEM" });
-    }
-  }, [dados.itens]);
-
-  useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = 0;
     }
@@ -61,16 +52,21 @@ export default function Wizard() {
   const validarEtapa = () => {
     switch (etapaAtual) {
       case 0:
-        return dados.objeto.trim() !== "" && dados.necessidade.trim() !== "" && dados.itens.length > 0;
+        return (
+          dados.objeto.trim() !== "" &&
+          dados.necessidade.trim() !== "" &&
+          dados.itens.length > 0 &&
+          dados.itens.every(
+            (i: any) => i.descricao.trim() !== "" && i.qtd > 0 && i.valor > 0 && i.un.trim() !== ""
+          )
+        );
       case 1:
         return dados.execucao.trim() !== "";
       case 2:
-          return (
-            dados.secretarias.length > 0 &&
-            dados.secretarias.every((sec: string) =>
-            dados.contatosSecretarias[sec]?.length > 0
-          )
-      );
+        return (
+          dados.secretarias.length > 0 &&
+          dados.secretarias.every((sec: string) => dados.contatosSecretarias[sec]?.length > 0)
+        );
       case 3:
         return dados.gestores.length > 0 && dados.fiscais.length > 0;
       case 4:
@@ -78,7 +74,6 @@ export default function Wizard() {
         const modalidadeValida = dados.modalidade === "PREGAO_ELETRONICO" || dados.motivoModalidade.trim() !== "";
         const pacValido = dados.pac === "SIM" || dados.motivoPac.trim() !== "";
         const dotacaoValida = dados.dotacao.trim() !== "" || !!dados.caminhoImagemDotacao;
-        
         return dados.instrumento !== "" && criterioValido && modalidadeValida && pacValido && dotacaoValida;
       default:
         return true;
@@ -188,9 +183,9 @@ export default function Wizard() {
         <span style={{ color: "#6B7280", fontWeight: "bold", fontSize: "14px" }}>Passo {etapaAtual + 1} de 5</span>
       </div>
       
-      <div ref={scrollRef} style={{ flex: 1, padding: "0 40px", overflow: "hidden",}}>
-        <div style={{ height: "100%", background: "white", borderRadius: "24px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)", border: "1px solid #E5E7EB", padding: "16px", }}>
-          <div style={{ height: "100%", overflowY: "auto", padding: "16px", }}>
+      <div style={{ flex: 1, padding: "0 40px", overflow: "hidden" }}>
+        <div style={{ height: "100%", background: "white", borderRadius: "24px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)", border: "1px solid #E5E7EB", padding: "16px" }}>
+          <div ref={scrollRef} style={{ height: "100%", overflowY: "auto", padding: "16px" }}>
             {renderizarEtapa()}
           </div>
         </div>

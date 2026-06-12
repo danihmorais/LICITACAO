@@ -1,13 +1,12 @@
 import React, { useRef } from "react";
 import * as XLSX from "xlsx";
 
-export default function Step1({ dados = { itens: [], objeto: "", necessidade: "", usarLotes: false }, atualizarDados }: any) {
+export default function Step1({ dados = { itens: [], objeto: "", necessidade: "" }, atualizarDados }: any) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const itens = dados.itens || [];
   const objeto = dados.objeto || "";
   const necessidade = dados.necessidade || "";
-  const usarLotes = dados.usarLotes || false;
 
   const formatarMoeda = (valor: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
@@ -24,7 +23,6 @@ export default function Step1({ dados = { itens: [], objeto: "", necessidade: ""
       { 
         id: Date.now() + Math.random(), 
         numero: itens.length + 1, 
-        lote: "", 
         descricao: "", 
         un: "UN", 
         qtd: 1, 
@@ -106,7 +104,6 @@ export default function Step1({ dados = { itens: [], objeto: "", necessidade: ""
           .map((row) => ({
             id: Date.now() + Math.random(),
             numero: Number(row[0]) || 0,
-            lote: "",
             descricao: String(row[1] || "").trim(),
             qtd: Math.floor(extrairNumero(row[7])) || 0,
             un: String(row[8] || "UN").trim(),
@@ -168,16 +165,6 @@ export default function Step1({ dados = { itens: [], objeto: "", necessidade: ""
       </div>
 
       <div style={{ borderTop: "1px solid #E5E7EB", paddingTop: "24px" }}>
-        <label style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px", fontWeight: "bold", color: "#374151", cursor: "pointer", width: "fit-content" }}>
-          <input
-            type="checkbox"
-            checked={usarLotes}
-            onChange={(e) => atualizarDados({ ...dados, usarLotes: e.target.checked })}
-            style={{ width: "18px", height: "18px", cursor: "pointer" }}
-          />
-          Utilizar agrupamento por lotes
-        </label>
-
         <div style={{ display: "flex", gap: "12px", marginBottom: "16px", alignItems: "center" }}>
           <button onClick={handleAdd} style={{ width: "140px", height: "38px", background: "#2563EB", color: "white", border: "none", borderRadius: "12px", fontWeight: "bold", cursor: "pointer" }}>+ Novo Item</button>
           <button onClick={dispararImportacao} style={{ width: "140px", height: "38px", background: "#2563EB", color: "white", border: "none", borderRadius: "12px", fontWeight: "bold", cursor: "pointer" }}>Importar XLSX</button>
@@ -186,7 +173,6 @@ export default function Step1({ dados = { itens: [], objeto: "", necessidade: ""
 
         <div style={{ background: "#4B5563", color: "white", display: "flex", padding: "12px", borderRadius: "8px", fontWeight: "bold", fontSize: "13px" }}>
           <div style={{ width: "40px" }}>#</div>
-          {usarLotes && <div style={{ width: "70px" }}>Lote</div>}
           <div style={{ flex: 1, minWidth: "150px" }}>Descrição</div>
           <div style={{ width: "60px" }}>UN</div>
           <div style={{ width: "80px" }}>Qtd</div>
@@ -200,15 +186,20 @@ export default function Step1({ dados = { itens: [], objeto: "", necessidade: ""
             <div key={item.id} style={{ display: "flex", alignItems: "center", background: "#F3F4F6", padding: "8px 12px", borderRadius: "8px", gap: "8px" }}>
               <div style={{ width: "40px", fontWeight: "bold", color: "#374151" }}>{item.numero || index + 1}</div>
               
-              {usarLotes && (
-                <input type="text" placeholder="Lote" value={item.lote} onChange={(e) => handleChange(item.id, "lote", e.target.value)} style={{ width: "70px", padding: "8px", borderRadius: "8px", border: "1px solid #D1D5DB", boxSizing: "border-box" }} />
-              )}
-              
               <input type="text" required value={item.descricao} onChange={(e) => handleChange(item.id, "descricao", e.target.value)} style={{ flex: 1, minWidth: "150px", padding: "8px", borderRadius: "8px", border: item.descricao.trim() === "" ? "1px solid #DC2626" : "1px solid #D1D5DB", boxSizing: "border-box" }} />
               
               <input type="text" required value={item.un} onChange={(e) => handleChange(item.id, "un", e.target.value)} style={{ width: "60px", padding: "8px", borderRadius: "8px", border: item.un.trim() === "" ? "1px solid #DC2626" : "1px solid #D1D5DB", boxSizing: "border-box", textAlign: "center" }} />
               
-              <input type="number" required min="1" step="1" value={item.qtd} onChange={(e) => handleChange(item.id, "qtd", Math.floor(Number(e.target.value)) || 0)} style={{ width: "80px", padding: "8px", borderRadius: "8px", border: Number(item.qtd) <= 0 ? "1px solid #DC2626" : "1px solid #D1D5DB", boxSizing: "border-box", textAlign: "right" }} />
+              <input 
+                type="number" 
+                required 
+                min="1" 
+                step="1" 
+                value={item.qtd} 
+                onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault(); }}
+                onChange={(e) => handleChange(item.id, "qtd", parseInt(e.target.value, 10) || "")} 
+                style={{ width: "80px", padding: "8px", borderRadius: "8px", border: Number(item.qtd) <= 0 ? "1px solid #DC2626" : "1px solid #D1D5DB", boxSizing: "border-box", textAlign: "right" }} 
+              />
               
               <input type="text" required value={formatarMoeda(item.valor)} onChange={(e) => handleChange(item.id, "valor", parseMoeda(e.target.value))} style={{ width: "130px", padding: "8px", borderRadius: "8px", border: Number(item.valor) <= 0 ? "1px solid #DC2626" : "1px solid #D1D5DB", boxSizing: "border-box", textAlign: "right", fontFamily: "monospace" }} />
               
