@@ -1,15 +1,4 @@
 {
-    "secretarias_default": [
-        "SECRETARIA DE SAÚDE",
-        "SECRETARIA DE ADMINISTRAÇÃO",
-        "SECRETARIA DE OBRAS E SERVIÇOS PÚBLICOS",
-        "SECRETARIA DE EDUCAÇÃO, CULTURA, ESPORTE E LAZER",
-        "SECRETARIA DE DESENVOLVIMENTO E PROMOÇÃO SOCIAL",
-        "SECRETARIA DE AGRICULTURA, MEIO AMBIENTE, INDÚSTRIA E COMÉRCIO",
-        "GABINETE DO PREFEITO",
-        "FUNDO SOCIAL DE SOLIDARIEDADE"
-    ],
-
     "limites": {
         "dispensa_80k": 80000,
         "dispensa_pequeno_valor": 9635
