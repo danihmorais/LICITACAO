@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import Step1 from "./steps/step1";
 import Step2 from "./steps/step2";
@@ -9,6 +9,7 @@ import { mapearDadosWizard } from "../utils/mapearDados";
 import { processarDadosIA } from "../providers/services/geradorIA";
 import ConfigIA from "../components/configIA";
 import PromptModal from "../components/promptModal";
+import { ThemeContext } from "../context/ThemeContext";
 
 export default function Wizard() {
   const [etapaAtual, setEtapaAtual] = useState(0);
@@ -43,6 +44,12 @@ export default function Wizard() {
   const [geracaoSucesso, setGeracaoSucesso] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [mostrarConfig, setMostrarConfig] = useState(false);
+  const { theme, toggleTheme } = useContext(ThemeContext);
+  const isDark = theme === "dark";
+  const bgBody = isDark ? "#111827" : "#F3F4F6";
+  const bgCard = isDark ? "#1F2937" : "#FFFFFF";
+  const textColor = isDark ? "#F9FAFB" : "#111827";
+  const textMuted = isDark ? "#9CA3AF" : "#6B7280";
   const [mostrarPromptModal, setMostrarPromptModal] = useState(false);
 
   const atualizarDados = (novosDados: Partial<typeof dados>) => {
@@ -309,24 +316,24 @@ export default function Wizard() {
   const podeAvancar = validarEtapa();
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", backgroundColor: "#F3F4F6" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", backgroundColor: bgBody, transition: "background-color 0.3s", fontFamily: "sans-serif" }}>
       <div style={{ padding: "24px 40px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: "22px", color: "#111827" }}>
+            <h1 style={{ margin: 0, fontSize: "22px", color: textColor }}>
               {etapaAtual === 0 && "Etapa 1: Objeto e Justificativa"}
               {etapaAtual === 1 && "Etapa 2: Condições de Execução"}
               {etapaAtual === 2 && "Etapa 3: Unidade Demandante"}
               {etapaAtual === 3 && "Etapa 4: Equipe de Planejamento"}
               {etapaAtual === 4 && "Etapa 5: Definição do Instrumento"}
             </h1>
-            <p style={{ margin: "4px 0 0 0", color: "#4B5563", fontSize: "14px" }}>
+            <p style={{ margin: "4px 0 0 0", color: textMuted, fontSize: "14px" }}>
               Forneça os dados do processo com clareza para gerar os artefatos corretamente.
             </p>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-          <span style={{ color: "#6B7280", fontWeight: "bold", fontSize: "14px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ color: textMuted, fontWeight: "bold", fontSize: "14px" }}>
             Passo {etapaAtual + 1} de 5
           </span>
 
@@ -335,7 +342,7 @@ export default function Wizard() {
             style={{
               background: "white",
               border: "1px solid #D1D5DB",
-              borderRadius: "12px",
+              borderRadius: "8px",
               width: "44px",
               height: "44px",
               cursor: "pointer",
@@ -349,6 +356,12 @@ export default function Wizard() {
           >
             ⚙️
           </button>
+                <button 
+        onClick={toggleTheme} 
+        style={{ width: "44px", height: "44px", borderRadius: "8px", border: "none", cursor: "pointer", background: isDark ? "#374151" : "#E5E7EB", color: textColor }}
+      >
+        {isDark ? "☀️" : "🌙"}
+      </button>
         </div>
       </div>
 
@@ -403,6 +416,7 @@ export default function Wizard() {
           {etapaAtual === 4 ? "Confeccionar" : "Avançar"}
         </button>
       </div>
+      
       {mostrarConfig && (
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
           <div style={{ background: "white", padding: "32px", borderRadius: "24px", width: "100%", maxWidth: "500px", position: "relative", boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}>
@@ -425,7 +439,6 @@ export default function Wizard() {
           </div>
         </div>
       )}
-      
       <PromptModal 
         isOpen={mostrarPromptModal} 
         onClose={() => setMostrarPromptModal(false)} 
