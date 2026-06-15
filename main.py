@@ -86,17 +86,58 @@ def processar():
             itens_json = modificacoes.get("{{ITENS}}")
             if not _valor_vazio(itens_json):
                 itens_str = str(itens_json)
-                
-                if not itens_str.startswith("__TABLE__"):
-                    modificacoes["{{ITENS}}"] = f"__TABLE__{itens_str}"
-                else:
+                if itens_str.startswith("__TABLE__"):
                     itens_str = itens_str.replace("__TABLE__", "")
                     
-                itens = json.loads(itens_str) if isinstance(itens_str, str) else itens_json
-                colunas_remover = {"Vlr Unit. (R$)", "Vlr Unit", "Valor Unitário", "Valor Unitario", "Total", "Valor Total"}
-                
-                itens_filtrados = [{k: v for k, v in item.items() if k not in colunas_remover} for item in itens]
-                modificacoes["{{ITENS_SEMVALOR}}"] = f"__TABLE__{json.dumps(itens_filtrados, ensure_ascii=False)}"
+                try:
+                    itens = json.loads(itens_str) if isinstance(itens_str, str) else itens_json
+                    
+                    itens_formatados = []
+                    itens_sem_valor = []
+                    
+                    for item in itens:
+                        try:
+                            valor_unit = float(item.get("valor", 0))
+                        except (ValueError, TypeError):
+                            valor_unit = 0.0
+                            
+                        try:
+                            qtd = float(item.get("qtd", 0))
+                        except (ValueError, TypeError):
+                            qtd = 0.0
+                            
+                        total = valor_unit * qtd
+                        
+                        def formata_moeda(v):
+                            s = f"{v:,.2f}"
+                            s = s.replace(",", "X").replace(".", ",").replace("X", ".")
+                            return f"R$ {s}"
+                        
+                        item_formatado = {
+                            "Item": item.get("numero", ""),
+                            "Descrição": item.get("descricao", ""),
+                            "UN": item.get("un", ""),
+                            "Qtd": item.get("qtd", ""),
+                            "Vlr Unit.": formata_moeda(valor_unit),
+                            "Total": formata_moeda(total)
+                        }
+                        itens_formatados.append(item_formatado)
+                        
+                        item_sv = {
+                            "Item": item.get("numero", ""),
+                            "Descrição": item.get("descricao", ""),
+                            "UN": item.get("un", ""),
+                            "Qtd": item.get("qtd", "")
+                        }
+                        itens_sem_valor.append(item_sv)
+                    
+                    modificacoes["{{ITENS}}"] = f"__TABLE__{json.dumps(itens_formatados, ensure_ascii=False)}"
+                    modificacoes["{{ITENS_SEMVALOR}}"] = f"__TABLE__{json.dumps(itens_sem_valor, ensure_ascii=False)}"
+                except Exception:
+                    # Em caso de erro ao converter (ex: já estar formatado ou estrutura errada)
+                    if not str(itens_json).startswith("__TABLE__"):
+                        modificacoes["{{ITENS}}"] = f"__TABLE__{str(itens_json)}"
+
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             pasta_lote = os.path.join(pasta_saida, timestamp)
             os.makedirs(pasta_lote, exist_ok=True)

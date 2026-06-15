@@ -8,6 +8,7 @@ import Step5 from "./steps/step5";
 import { mapearDadosWizard } from "../utils/mapearDados";
 import { processarDadosIA } from "../providers/services/geradorIA";
 import ConfigIA from "../components/configIA";
+import PromptModal from "../components/promptModal";
 
 export default function Wizard() {
   const [etapaAtual, setEtapaAtual] = useState(0);
@@ -23,7 +24,7 @@ export default function Wizard() {
     gestores: [],
     fiscais: [],
     instrumento: "CONTRATO",
-    prorrogar: false,
+    prorrogar: true,
     meepp: "SIM",
     criterio: "ITEM",
     motivoCriterio: "",
@@ -42,6 +43,7 @@ export default function Wizard() {
   const [geracaoSucesso, setGeracaoSucesso] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [mostrarConfig, setMostrarConfig] = useState(false);
+  const [mostrarPromptModal, setMostrarPromptModal] = useState(false);
 
   const atualizarDados = (novosDados: Partial<typeof dados>) => {
     setDados((prev) => ({ ...prev, ...novosDados }));
@@ -88,7 +90,7 @@ export default function Wizard() {
     if (etapaAtual < 4) {
       setEtapaAtual(etapaAtual + 1);
     } else {
-      confeccionarDocumentos();
+      setMostrarPromptModal(true);
     }
   };
 
@@ -98,7 +100,8 @@ export default function Wizard() {
     }
   };
 
-  const confeccionarDocumentos = async () => {
+  const confeccionarDocumentos = async (instrucoes: string) => {
+    setMostrarPromptModal(false);
     setCarregando(true);
     setErroMsg(null);
     setGeracaoSucesso(false);
@@ -115,6 +118,8 @@ export default function Wizard() {
       }
 
       const dadosMapeados = mapearDadosWizard(dados);
+      dadosMapeados["INSTRUCOES_EXTRAS"] = instrucoes;
+      
       const meeppExclusivo = dados.meepp === "SIM";
 
       setStatusTexto("A gerar Documento de Formalização de Demanda (DFD)...");
@@ -154,8 +159,6 @@ export default function Wizard() {
 
       setErroMsg(msg);
     }
-    // Sem bloco finally — a tela de carregamento permanece visível
-    // para mostrar o erro ou o sucesso ao utilizador.
   };
 
   const renderizarEtapa = () => {
@@ -169,7 +172,6 @@ export default function Wizard() {
     }
   };
 
-  /* ── Tela de carregamento / erro / sucesso ─────────────────────────── */
   if (carregando) {
     return (
       <div style={{
@@ -189,8 +191,6 @@ export default function Wizard() {
           width: "100%",
           maxWidth: "620px"
         }}>
-
-          {/* ── Estado: ERRO ────────────────────────────────────────────── */}
           {erroMsg && (
             <>
               <div style={{ fontSize: "44px", marginBottom: "12px" }}>⚠️</div>
@@ -236,7 +236,6 @@ export default function Wizard() {
             </>
           )}
 
-          {/* ── Estado: SUCESSO ─────────────────────────────────────────── */}
           {geracaoSucesso && !erroMsg && (
             <>
               <div style={{ fontSize: "44px", marginBottom: "12px" }}>✅</div>
@@ -246,16 +245,16 @@ export default function Wizard() {
               <p style={{ color: "#6B7280", margin: "0 0 24px 0", fontSize: "14px" }}>
                 Os arquivos foram salvos na pasta{" "}
                 <span
-  onClick={() => invoke("abrir_pasta_documentos")}
-  style={{
-    color: "#2563EB",
-    fontWeight: "bold",
-    cursor: "pointer",
-    textDecoration: "underline",
-  }}
->
-  Documentos_Gerados
-</span>.
+                  onClick={() => invoke("abrir_pasta_documentos")}
+                  style={{
+                    color: "#2563EB",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                    textDecoration: "underline",
+                  }}
+                >
+                  Documentos_Gerados
+                </span>.
               </p>
               <button
                 onClick={() => { setCarregando(false); setGeracaoSucesso(false); }}
@@ -275,7 +274,6 @@ export default function Wizard() {
             </>
           )}
 
-          {/* ── Estado: CARREGANDO ──────────────────────────────────────── */}
           {!erroMsg && !geracaoSucesso && (
             <>
               <h2 style={{ margin: "0 0 16px 0", color: "#111827", fontSize: "24px" }}>
@@ -308,7 +306,6 @@ export default function Wizard() {
     );
   }
 
-  /* ── Wizard normal ─────────────────────────────────────────────────── */
   const podeAvancar = validarEtapa();
 
   return (
@@ -329,46 +326,46 @@ export default function Wizard() {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-  <span style={{ color: "#6B7280", fontWeight: "bold", fontSize: "14px" }}>
-    Passo {etapaAtual + 1} de 5
-  </span>
+          <span style={{ color: "#6B7280", fontWeight: "bold", fontSize: "14px" }}>
+            Passo {etapaAtual + 1} de 5
+          </span>
 
-  <button
-    onClick={() => setMostrarConfig(true)}
-    style={{
-      background: "white",
-      border: "1px solid #D1D5DB",
-      borderRadius: "12px",
-      width: "44px",
-      height: "44px",
-      cursor: "pointer",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-      fontSize: "20px"
-    }}
-    title="Configurações de IA"
-  >
-    ⚙️
-  </button>
-</div>
-</div>
+          <button
+            onClick={() => setMostrarConfig(true)}
+            style={{
+              background: "white",
+              border: "1px solid #D1D5DB",
+              borderRadius: "12px",
+              width: "44px",
+              height: "44px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+              fontSize: "20px"
+            }}
+            title="Configurações de IA"
+          >
+            ⚙️
+          </button>
+        </div>
+      </div>
 
-<div style={{ flex: 1, padding: "0 40px", overflow: "hidden" }}>
-          <div style={{
-            height: "100%",
-            background: "white",
-            borderRadius: "24px",
-            boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
-            border: "1px solid #E5E7EB",
-            padding: "16px"
-          }}>
-            <div ref={scrollRef} style={{ height: "100%", overflowY: "auto", padding: "16px" }}>
-              {renderizarEtapa()}
-            </div>
+      <div style={{ flex: 1, padding: "0 40px", overflow: "hidden" }}>
+        <div style={{
+          height: "100%",
+          background: "white",
+          borderRadius: "24px",
+          boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
+          border: "1px solid #E5E7EB",
+          padding: "16px"
+        }}>
+          <div ref={scrollRef} style={{ height: "100%", overflowY: "auto", padding: "16px" }}>
+            {renderizarEtapa()}
           </div>
         </div>
+      </div>
       <div style={{ padding: "24px 40px", display: "flex", justifyContent: "space-between" }}>
         <button
           onClick={voltar}
@@ -411,7 +408,6 @@ export default function Wizard() {
           <div style={{ background: "white", padding: "32px", borderRadius: "24px", width: "100%", maxWidth: "500px", position: "relative", boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}>
             <button 
               onClick={() => {
-                console.log("Fechando janela de configurações.");
                 setMostrarConfig(false);
               }} 
               style={{ position: "absolute", top: "20px", right: "20px", background: "#F3F4F6", border: "none", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#4B5563", fontWeight: "bold" }}
@@ -429,6 +425,12 @@ export default function Wizard() {
           </div>
         </div>
       )}
+      
+      <PromptModal 
+        isOpen={mostrarPromptModal} 
+        onClose={() => setMostrarPromptModal(false)} 
+        onConfirm={confeccionarDocumentos} 
+      />
     </div>
   );
 }
