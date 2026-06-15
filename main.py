@@ -97,13 +97,14 @@ def processar():
                 
                 itens_filtrados = [{k: v for k, v in item.items() if k not in colunas_remover} for item in itens]
                 modificacoes["{{ITENS_SEMVALOR}}"] = f"__TABLE__{json.dumps(itens_filtrados, ensure_ascii=False)}"
-
-            os.makedirs(pasta_saida, exist_ok=True)
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            pasta_lote = os.path.join(pasta_saida, timestamp)
+            os.makedirs(pasta_lote, exist_ok=True)
             arquivos_gerados = []
 
             for arq in arquivos_base:
                 cam_origem = os.path.join(pasta_modelos, arq)
-                cam_destino = os.path.join(pasta_saida, f"Pronto_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{arq}")
+                cam_destino = os.path.join(pasta_lote, f"Pronto_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{arq}")
                 if os.path.exists(cam_origem):
                     modificar_documento(cam_origem, cam_destino, modificacoes)
                     arquivos_gerados.append(cam_destino)

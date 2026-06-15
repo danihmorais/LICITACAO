@@ -206,8 +206,34 @@ pub fn run() {
             ler_dados_usuario,
             abrir_link,
             aplicar_atualizacao,
-            verificar_status_apis
+            verificar_status_apis,
+            abrir_pasta_documentos,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+#[tauri::command]
+fn abrir_pasta_documentos() -> Result<(), String> {
+    let exe_dir = std::env::current_exe()
+        .map_err(|e| e.to_string())?
+        .parent()
+        .ok_or("Não foi possível localizar a pasta do executável")?
+        .to_path_buf();
+
+    let pasta = exe_dir.join("Documentos_Gerados");
+
+    if !pasta.exists() {
+        return Err(format!(
+            "Pasta não encontrada: {}",
+            pasta.display()
+        ));
+    }
+
+    #[cfg(target_os = "windows")]
+    std::process::Command::new("explorer")
+        .arg(&pasta)
+        .spawn()
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
 }

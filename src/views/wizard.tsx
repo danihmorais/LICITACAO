@@ -245,7 +245,17 @@ export default function Wizard() {
               </h2>
               <p style={{ color: "#6B7280", margin: "0 0 24px 0", fontSize: "14px" }}>
                 Os arquivos foram salvos na pasta{" "}
-                <strong style={{ color: "#111827" }}>Documentos_Gerados</strong>.
+                <span
+  onClick={() => invoke("abrir_pasta_documentos")}
+  style={{
+    color: "#2563EB",
+    fontWeight: "bold",
+    cursor: "pointer",
+    textDecoration: "underline",
+  }}
+>
+  Documentos_Gerados
+</span>.
               </p>
               <button
                 onClick={() => { setCarregando(false); setGeracaoSucesso(false); }}
