@@ -1,7 +1,6 @@
 export async function validarChaveGemini(apiKey: string): Promise<boolean> {
   try {
-    console.log("Iniciando validação da chave Gemini...");
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -15,23 +14,20 @@ export async function validarChaveGemini(apiKey: string): Promise<boolean> {
       })
     });
     
-    console.log("Status resposta Gemini:", response.status);
-    
     if (!response.ok) {
       const errText = await response.text();
-      console.error("Erro na validação Gemini:", response.status, errText);
+      console.error(response.status, errText);
     }
     
     return response.ok;
   } catch (error) {
-    console.error("Exceção na validação Gemini:", error);
+    console.error(error);
     return false;
   }
 }
 
 export async function validarChaveOpenRouter(apiKey: string): Promise<boolean> {
   try {
-    console.log("Iniciando validação da chave OpenRouter...");
     const url = "https://openrouter.ai/api/v1/chat/completions";
     const response = await fetch(url, {
       method: "POST",
@@ -40,28 +36,25 @@ export async function validarChaveOpenRouter(apiKey: string): Promise<boolean> {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openai/gpt-4o-mini",
+        model: "openrouter/free",
         max_tokens: 1,
         messages: [{ role: "user", content: "teste" }]
       })
     });
     
-    console.log("Status resposta OpenRouter:", response.status);
-    
     if (!response.ok) {
       const errText = await response.text();
-      console.error("Erro na validação OpenRouter:", response.status, errText);
+      console.error(response.status, errText);
     }
     
     return response.ok;
   } catch (error) {
-    console.error("Exceção na validação OpenRouter:", error);
+    console.error(error);
     return false;
   }
 }
 
-export async function gerarTextoGemini(prompt: string, apiKey: string, model: string = "gemini-1.5-flash"): Promise<any> {
-  console.log("Gerando texto com Gemini, modelo:", model);
+export async function gerarTextoGemini(prompt: string, apiKey: string, model: string = "gemini-2.5-flash"): Promise<any> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
   
   const response = await fetch(url, {
@@ -73,6 +66,7 @@ export async function gerarTextoGemini(prompt: string, apiKey: string, model: st
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.3,
+        maxOutputTokens: 8192,
         responseMimeType: "application/json"
       }
     })
@@ -80,25 +74,27 @@ export async function gerarTextoGemini(prompt: string, apiKey: string, model: st
 
   if (!response.ok) {
     const errorData = await response.text();
-    console.error("Falha na geração com Gemini:", errorData);
     throw new Error(`Erro na API do Gemini (HTTP ${response.status}): ${errorData}`);
   }
 
   const data = await response.json();
-  console.log("Resposta Gemini recebida com sucesso.");
   
   try {
     let textoFinal = data.candidates[0].content.parts[0].text;
-    textoFinal = textoFinal.replace(/```json/gi, "").replace(/```/g, "").trim();
+    const inicioJSON = textoFinal.indexOf('{');
+    const fimJSON = textoFinal.lastIndexOf('}');
+    
+    if (inicioJSON !== -1 && fimJSON !== -1) {
+      textoFinal = textoFinal.substring(inicioJSON, fimJSON + 1);
+    }
+    
     return JSON.parse(textoFinal);
   } catch (err) {
-    console.error("Erro ao fazer parse do JSON do Gemini:", err);
     throw new Error("Resposta inesperada da API do Gemini. Estrutura de dados ou JSON inválidos.");
   }
 }
 
-export async function gerarTextoOpenRouter(prompt: string, apiKey: string, model: string = "openai/gpt-4o"): Promise<any> {
-  console.log("Gerando texto com OpenRouter, modelo:", model);
+export async function gerarTextoOpenRouter(prompt: string, apiKey: string, model: string = "openrouter/free"): Promise<any> {
   const url = "https://openrouter.ai/api/v1/chat/completions";
 
   const response = await fetch(url, {
@@ -110,27 +106,33 @@ export async function gerarTextoOpenRouter(prompt: string, apiKey: string, model
     body: JSON.stringify({
       model: model,
       temperature: 0.3,
-      max_tokens: 4000,
-      response_format: { type: "json_object" },
+      max_tokens: 8000,
       messages: [{ role: "user", content: prompt }]
     })
   });
 
   if (!response.ok) {
     const errorData = await response.text();
-    console.error("Falha na geração com OpenRouter:", errorData);
     throw new Error(`Erro na API do OpenRouter (HTTP ${response.status}): ${errorData}`);
   }
 
   const data = await response.json();
-  console.log("Resposta OpenRouter recebida com sucesso.");
+
+  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+    throw new Error("Resposta vazia ou bloqueada pela OpenRouter. Verifique o limite de requisições gratuitas.");
+  }
 
   try {
     let textoFinal = data.choices[0].message.content;
-    textoFinal = textoFinal.replace(/```json/gi, "").replace(/```/g, "").trim();
+    const inicioJSON = textoFinal.indexOf('{');
+    const fimJSON = textoFinal.lastIndexOf('}');
+    
+    if (inicioJSON !== -1 && fimJSON !== -1) {
+      textoFinal = textoFinal.substring(inicioJSON, fimJSON + 1);
+    }
+    
     return JSON.parse(textoFinal);
   } catch (err) {
-    console.error("Erro ao fazer parse do JSON do OpenRouter:", err);
     throw new Error("Resposta inesperada da API do OpenRouter. Estrutura de dados ou JSON inválidos.");
   }
 }

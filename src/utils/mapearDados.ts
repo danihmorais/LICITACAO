@@ -1,19 +1,20 @@
 export const mapearDadosWizard = (dados: any) => {
-  const totalItens = dados.itens.reduce((acc: number, i: any) => acc + (Number(i.qtd) * Number(i.valor || 0)), 0);
+  const itens = dados.itens || [];
+  const totalItens = itens.reduce((acc: number, i: any) => acc + (Number(i.qtd || 0) * Number(i.valor || 0)), 0);
   const valorEstimadoFormatado = totalItens.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   
   return {
     "{{OBJETO}}": dados.objeto || "",
     "{{NECESSIDADE}}": dados.necessidade || "",
-    "{{ITENS}}": JSON.stringify(dados.itens || []),
+    "{{ITENS}}": JSON.stringify(itens),
     "{{VALOR_ESTIMADO}}": valorEstimadoFormatado,
     "{{EXECUCAO}}": dados.execucao || "",
-    "{{PAC}}": dados.pac === "SIM" ? "Previsto no PAC" : `Não previsto: ${dados.motivoPac}`,
+    "{{PAC}}": dados.pac === "SIM" ? "Previsto no PAC" : `Não previsto: ${dados.motivoPac || 'sem justificativa'}`,
     "{{INSTRUMENTO}}": dados.instrumento || "CONTRATO",
-    "{{GESTOR}}": dados.gestores?.map((g: any) => g.nome).join(", ") ?? "",
-    "{{GESTOR_CARGO}}": dados.gestores?.map((g: any) => g.cargo).join(", ") ?? "",
-    "{{FISCAL}}": dados.fiscais?.map((f: any) => f.nome).join(", ") ?? "",
-    "{{FISCAL_CARGO}}": dados.fiscais?.map((f: any) => f.cargo).join(", ") ?? "",
+    "{{GESTOR}}": (dados.gestores || []).map((g: any) => g.nome).join(", ") || "[Não informado]",
+    "{{GESTOR_CARGO}}": (dados.gestores || []).map((g: any) => g.cargo).join(", ") || "[Não informado]",
+    "{{FISCAL}}": (dados.fiscais || []).map((f: any) => f.nome).join(", ") || "[Não informado]",
+    "{{FISCAL_CARGO}}": (dados.fiscais || []).map((f: any) => f.cargo).join(", ") || "[Não informado]",
     "{{AMOST}}": dados.amostra ? "sim" : "nao",
     "{{VIST}}": dados.vistoria ? "sim" : "nao",
     "{{PRORROGA}}": dados.prorrogar ? "sim" : "nao",
@@ -30,6 +31,6 @@ export const mapearDadosWizard = (dados: any) => {
     "RAW_EXECUCAO": dados.execucao || "",
     "RAW_MOTIVO_CRITERIO": dados.motivoCriterio || "",
     "RAW_MOTIVO_MODALIDADE": dados.motivoModalidade || "",
-    "RAW_PAC": dados.pac === "SIM" ? "Previsto no PAC" : `Não previsto: ${dados.motivoPac}`
+    "RAW_PAC": dados.pac === "SIM" ? "Previsto no PAC" : `Não previsto: ${dados.motivoPac || 'sem justificativa'}`
   };
 };

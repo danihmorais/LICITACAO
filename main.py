@@ -67,6 +67,22 @@ def processar():
             if _valor_vazio(modificacoes.get("{{MES_INICIO}}")):
                 modificacoes["{{MES_INICIO}}"] = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"][datetime.now().month - 1]
 
+            modificacoes.update(preenchimentos_manuais)
+
+            for _ in range(3):
+                mudou = False
+                for k, v in modificacoes.items():
+                    if isinstance(v, str) and "{{" in v:
+                        novo_v = v
+                        for sub_k, sub_v in modificacoes.items():
+                            if sub_k != k and sub_k in novo_v and isinstance(sub_v, str):
+                                novo_v = novo_v.replace(sub_k, sub_v)
+                        if novo_v != v:
+                            modificacoes[k] = novo_v
+                            mudou = True
+                if not mudou:
+                    break
+
             itens_json = modificacoes.get("{{ITENS}}")
             if not _valor_vazio(itens_json):
                 itens_str = str(itens_json)
@@ -81,8 +97,6 @@ def processar():
                 
                 itens_filtrados = [{k: v for k, v in item.items() if k not in colunas_remover} for item in itens]
                 modificacoes["{{ITENS_SEMVALOR}}"] = f"__TABLE__{json.dumps(itens_filtrados, ensure_ascii=False)}"
-
-            modificacoes.update(preenchimentos_manuais)
 
             os.makedirs(pasta_saida, exist_ok=True)
             arquivos_gerados = []
