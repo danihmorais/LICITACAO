@@ -69,9 +69,18 @@ def processar():
 
             itens_json = modificacoes.get("{{ITENS}}")
             if not _valor_vazio(itens_json):
-                itens = json.loads(itens_json) if isinstance(itens_json, str) else itens_json
+                itens_str = str(itens_json)
+                
+                if not itens_str.startswith("__TABLE__"):
+                    modificacoes["{{ITENS}}"] = f"__TABLE__{itens_str}"
+                else:
+                    itens_str = itens_str.replace("__TABLE__", "")
+                    
+                itens = json.loads(itens_str) if isinstance(itens_str, str) else itens_json
                 colunas_remover = {"Vlr Unit. (R$)", "Vlr Unit", "Valor Unitário", "Valor Unitario", "Total", "Valor Total"}
-                modificacoes["{{ITENS_SEMVALOR}}"] = json.dumps([{k: v for k, v in item.items() if k not in colunas_remover} for item in itens], ensure_ascii=False)
+                
+                itens_filtrados = [{k: v for k, v in item.items() if k not in colunas_remover} for item in itens]
+                modificacoes["{{ITENS_SEMVALOR}}"] = f"__TABLE__{json.dumps(itens_filtrados, ensure_ascii=False)}"
 
             modificacoes.update(preenchimentos_manuais)
 
