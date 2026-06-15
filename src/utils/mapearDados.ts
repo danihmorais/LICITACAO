@@ -24,6 +24,7 @@ export const mapearDadosWizard = (dados: any) => {
     "{{MODALIDADE}}": dados.modalidade || "PREGAO_ELETRONICO",
     "{{MOTIVO_MODALIDADE}}": dados.motivoModalidade || "",
     "{{SECRETARIAS}}": dados.secretarias ? dados.secretarias.join(", ") : "",
+    "{{CONTATOS_SECRETARIAS}}": dados.contatosSecretarias ? dados.contatosSecretarias.join(", ") : "",
     "{{VIGENCIA}}": `${dados.vigenciaNum || 1} ${dados.vigenciaUnidade || 'Meses'}`,
     "{{DOTACAO}}": dados.dotacao || "",
     "INSTRUCOES_EXTRAS": dados.instrucoesExtras || "",

@@ -111,9 +111,9 @@ def montar_variaveis_fixas(dados_usuario: dict) -> dict:
         cargos_g = [c.strip() for c in cargos_gestores_str.split(",") if c.strip()]
         for i, nome in enumerate(nomes_g):
             cargo = cargos_g[i] if i < len(cargos_g) else ""
-            linha = f"____________________________\n{nome}"
+            linha = f"\n\n\n____________________________\n{nome}"
             if cargo:
-                linha += f"\n{cargo}\n\n\n"
+                linha += f"\n{cargo}\nGestor do Contrato\n\n\n"
             assinaturas_blocos.append(linha)
 
     if fiscais_str and fiscais_str != "[Não informado]":
@@ -123,7 +123,7 @@ def montar_variaveis_fixas(dados_usuario: dict) -> dict:
             cargo = cargos_f[i] if i < len(cargos_f) else ""
             linha = f"____________________________\n{nome}"
             if cargo:
-                linha += f"\n{cargo}"
+                linha += f"\n{cargo}\nFiscal do Contrato\n\n\n"
             assinaturas_blocos.append(linha)
 
     resultado["{{ASSINATURAS}}"] = "\n\n".join(assinaturas_blocos) if assinaturas_blocos else ""
