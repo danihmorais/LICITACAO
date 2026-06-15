@@ -5,7 +5,7 @@ const STAGE_CHAVES: Record<string, string[]> = {
         "OBJETO", "TIPO_OBJ", "JUSTIFICATIVA", "ESTIMATIVA_QUANTIDADES", "RESULTADOS_ESPERADOS"
     ],
     "ETP": [
-        "REQUISITOS_ETP", "SUBCONTRATACAO_ETP", "ME_EPP_ETP", "PAC", "MERCADO",
+        "REQUISITOS_ETP", "SUBCONTRATACAO_ETP", "ME_EPP_ETP", "JUSTIFICATIVA_PAC", "MERCADO",
         "SOLUCAO", "CRITERIOS_JUSTIFICATIVA_ETP", "CRITERIOS_SUSTENTABILIDADE",
         "MODALIDADE_JUSTIFICATIVA_ETP", "PROVIDENCIAS_CONT", "CORRELATAS_INTER",
         "JUSTIFICATIVA_ESTIMATIVA", "GARANTIAS_ETP", "VISTORIA_ETP", "AMOSTRA_ETP",
@@ -25,7 +25,7 @@ const REGRAS_MINIMAS_TEXTO: Record<string, string> = {
     "REQUISITOS_ETP": "Você deve elaborar requisitos técnicos, objetivos e proporcionais, evitando exigências excessivas de qualificação técnica. Já foi informado que serão solicitados toda a habilitação jurídica; técnica; fiscal, social e trabalhista; econômico-financeira, e ainda, demais declarações previstas na Lei 14.133/21. Assim, se for o caso, se concentre primeiro em declarações excepcionais que deveriam ser solicitar, e, depois, em documentos adicionais que deveriam ser solicitados, mas que não comprometam a competitividade. Se decidir algum, você deve justificar cada um deles, com pelo menos 1 parágrafo de fundamentação técnica, legal e administrativa para cada requisito adicional sugerido. Se não decidir por nenhum requisito adicional, você deve justificar tecnicamente a ausência de requisitos adicionais, reforçando a adequação dos requisitos previstos na Lei 14.133/21 para o caso concreto. Depois disso, deve considerar os requisitos necessários e suficientes à escolha da solução.",
     "SUBCONTRATACAO_ETP": "Mínimo de 1 parágrafo justificando, mas sempre será que não é permitido.",
     "ME_EPP_ETP": "Mínimo de 3 parágrafos com fundamento na LC 123/2006.",
-    "PAC": "Mínimo de 1 parágrafo caso estivesse previsto, caso contrário justificar excepcionalidade da contratação.",
+    "JUSTIFICATIVA_PAC": "Mínimo de 1 parágrafo caso estivesse previsto, caso contrário justificar excepcionalidade da contratação.",
     "MERCADO": "Mínimo de 3 parágrafos comparando soluções e práticas de mercado.",
     "SOLUCAO": "Mínimo de 3 parágrafos. Você deve focar na contratação como um todo, como a modalidade escolhida, o tipo de julgamento adotado, as condições de execução, a necessidade, o objeto, assistência técnica e garantias, e não abordar aspectos técnicos de itens específicos, que serão abordados posteriormente. O foco deve ser na solução de contratação como um todo, e não em aspectos técnicos de itens específicos.",
     "CRITERIOS_JUSTIFICATIVA_ETP": "Mínimo de 3 parágrafos.",
@@ -131,7 +131,7 @@ O OBJETO deve:
 6 - Caso haja convênio, recurso vinculado ou programa governamental, mencionar expressamente.
 A JUSTIFICATIVA deve conter motivação administrativa detalhada, demonstração do interesse público, necessidade institucional, impactos da não contratação, alinhamento ao planejamento e continuidade administrativa.`;
     } else if (etapa === "ETP") {
-        chaves = `{\n  "REQUISITOS_ETP": "",\n  "SUBCONTRATACAO_ETP": "",\n  "ME_EPP_ETP": "",\n  "PAC": "",\n  "MERCADO": "",\n  "SOLUCAO": "",\n  "CRITERIOS_JUSTIFICATIVA_ETP": "",\n  "CRITERIOS_SUSTENTABILIDADE": "",\n  "MODALIDADE_JUSTIFICATIVA_ETP": "",\n  "PROVIDENCIAS_CONT": "",\n  "CORRELATAS_INTER": "",\n  "JUSTIFICATIVA_ESTIMATIVA": "",\n  "GARANTIAS_ETP": "",\n  "VISTORIA_ETP": "",\n  "AMOSTRA_ETP": "",\n  "CONCLUSAO": ""\n}`;
+        chaves = `{\n  "REQUISITOS_ETP": "",\n  "SUBCONTRATACAO_ETP": "",\n  "ME_EPP_ETP": "",\n  "JUSTIFICATIVA_PAC": "",\n  "MERCADO": "",\n  "SOLUCAO": "",\n  "CRITERIOS_JUSTIFICATIVA_ETP": "",\n  "CRITERIOS_SUSTENTABILIDADE": "",\n  "MODALIDADE_JUSTIFICATIVA_ETP": "",\n  "PROVIDENCIAS_CONT": "",\n  "CORRELATAS_INTER": "",\n  "JUSTIFICATIVA_ESTIMATIVA": "",\n  "GARANTIAS_ETP": "",\n  "VISTORIA_ETP": "",\n  "AMOSTRA_ETP": "",\n  "CONCLUSAO": ""\n}`;
         
         const diretrizCriterio = criterioTipo === "ITEM" 
             ? "Na justificativa de parcelamento, priorize adjudicação por item como regra geral para ampliar competitividade, conforme jurisprudência do TCU." 

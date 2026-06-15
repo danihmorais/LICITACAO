@@ -27,11 +27,12 @@ export const mapearDadosWizard = (dados: any) => {
     "{{CONTATOS_SECRETARIAS}}": dados.contatosSecretarias ? dados.contatosSecretarias.join(", ") : "",
     "{{VIGENCIA}}": `${dados.vigenciaNum || 1} ${dados.vigenciaUnidade || 'Meses'}`,
     "{{DOTACAO}}": dados.dotacao || "",
+    "{{CAMINHO_IMAGEM_DOTACAO}}": dados.caminhoImagemDotacao ? `__IMG__${dados.caminhoImagemDotacao}` : "",
     "INSTRUCOES_EXTRAS": dados.instrucoesExtras || "",
-    "CAMINHO_IMAGEM_DOTACAO": dados.caminhoImagemDotacao || "",
     "RAW_EXECUCAO": dados.execucao || "",
     "RAW_MOTIVO_CRITERIO": dados.motivoCriterio || "",
     "RAW_MOTIVO_MODALIDADE": dados.motivoModalidade || "",
-    "RAW_PAC": dados.pac === "SIM" ? "Previsto no PAC" : `Não previsto: ${dados.motivoPac || 'sem justificativa'}`
+    "RAW_PAC": dados.pac === "SIM" ? "Previsto no PAC" : `Não previsto: ${dados.motivoPac || 'sem justificativa'}`,
+    "REQUISITOS_ETP_ANTERIOR": dados.requisitosEtpAnterior || "Não informados."
   };
 };

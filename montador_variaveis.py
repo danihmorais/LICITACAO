@@ -64,7 +64,9 @@ CHAVES_RAW = {
     "RAW_EXECUCAO",
     "RAW_MOTIVO_CRITERIO",
     "RAW_MOTIVO_MODALIDADE",
+    "RAW_PAC",
     "INSTRUCOES_EXTRAS",
+    "REQUISITOS_ETP_ANTERIOR",
 }
 
 SIM_VALORES = {"sim", "s", "x", "true", "1"}
