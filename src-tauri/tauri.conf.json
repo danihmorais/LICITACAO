@@ -26,16 +26,9 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": [],
     "icon": [
       "icons/icon.ico"
-    ],
-    "resources": {
-      "../main.py": "main.py",
-      "../processador_docx.py": "processador_docx.py",
-      "../montador_variaveis.py": "montador_variaveis.py",
-      "../config.py": "config.py",
-      "../modelos": "modelos"
-    }
+    ]
   }
 }

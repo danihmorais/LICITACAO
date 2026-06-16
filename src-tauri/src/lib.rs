@@ -1,5 +1,6 @@
 use serde_json::{json, Value};
 use std::fs;
+use std::path::PathBuf;
 use std::process::Stdio;
 use tokio::io::AsyncWriteExt;
 use tokio::process::Command;
@@ -10,25 +11,39 @@ pub struct AppState {
     pub http_client: reqwest::Client,
 }
 
+fn extrair_recursos() -> Result<PathBuf, String> {
+    let temp_dir = std::env::temp_dir().join("licita_ai_runtime");
+    fs::create_dir_all(&temp_dir).map_err(|e| e.to_string())?;
+
+    let python_exe = include_bytes!("../bin/python_backend.exe");
+    fs::write(temp_dir.join("python_backend.exe"), python_exe).map_err(|e| e.to_string())?;
+
+    let modelos_dir = temp_dir.join("modelos");
+    fs::create_dir_all(&modelos_dir).map_err(|e| e.to_string())?;
+
+    let dfd = include_bytes!("../../modelos/DFD - BASE.docx");
+    let etp = include_bytes!("../../modelos/ETP - BASE.docx");
+    let tr = include_bytes!("../../modelos/TR - BASE.docx");
+
+    fs::write(modelos_dir.join("DFD - BASE.docx"), dfd).map_err(|e| e.to_string())?;
+    fs::write(modelos_dir.join("ETP - BASE.docx"), etp).map_err(|e| e.to_string())?;
+    fs::write(modelos_dir.join("TR - BASE.docx"), tr).map_err(|e| e.to_string())?;
+
+    Ok(temp_dir)
+}
+
 #[tauri::command]
 async fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value) -> Result<String, String> {
-    let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
+    let temp_dir = extrair_recursos()?;
     let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
-    let main_py_path = resource_dir.join("main.py");
+    let backend_path = temp_dir.join("python_backend.exe");
 
-    if !main_py_path.exists() {
-        return Err("Arquivo main.py não encontrado nos recursos da aplicação.".to_string());
-    }
-
-    let python_path = if cfg!(target_os = "windows") { "python" } else { "python3" };
-
-    let mut child = Command::new(python_path)
-        .arg(&main_py_path)
+    let mut child = Command::new(backend_path)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|_| "Falha ao iniciar o processo Python. Verifique se o Python está instalado.".to_string())?;
+        .map_err(|e| format!("Falha ao iniciar o backend integrado: {}", e))?;
 
     if let Some(mut stdin) = child.stdin.take() {
         let payload = json!({
@@ -37,7 +52,7 @@ async fn gerar_documentos(app: AppHandle, dados_usuario: Value, dados_ia: Value)
             "dados_usuario": dados_usuario,
             "preenchimentos_manuais": {},
             "pasta_saida": "Documentos_Gerados",
-            "pasta_modelos": "modelos",
+            "pasta_modelos": temp_dir.join("modelos").to_string_lossy().to_string(),
             "arquivos_base": [
                 "DFD - BASE.docx",
                 "ETP - BASE.docx",
@@ -212,6 +227,7 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
 #[tauri::command]
 fn abrir_pasta_documentos() -> Result<(), String> {
     let exe_dir = std::env::current_exe()
