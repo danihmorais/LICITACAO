@@ -138,40 +138,40 @@ export default function Step1({ dados = { itens: [], objeto: "", necessidade: ""
       />
 
       <div>
-        <label style={{ fontWeight: "bold", fontSize: "16px", color: "#111827", display: "block", marginBottom: "8px" }}>
-          Objeto da Licitação: <span style={{ color: "#DC2626" }}>*</span>
+        <label style={{ fontWeight: "600", fontSize: "16px", color: "var(--text-main)", display: "block", marginBottom: "8px" }}>
+          Objeto da Licitação: <span style={{ color: "var(--btn-danger)" }}>*</span>
         </label>
-        <p style={{ color: "#6B7280", fontSize: "13px", margin: "0 0 12px 0" }}>Descreva brevemente o objeto licitado para direcionar a geração de especificações.</p>
+        <p style={{ color: "var(--text-muted)", fontSize: "13px", margin: "0 0 12px 0" }}>Descreva brevemente o objeto licitado para direcionar a geração de especificações.</p>
         <input 
           type="text" 
           required
           value={objeto} 
           onChange={(e) => atualizarDados({ ...dados, objeto: e.target.value })}
-          style={{ width: "100%", padding: "12px", borderRadius: "12px", border: objeto.trim() === "" ? "1px solid #DC2626" : "1px solid #D1D5DB", fontSize: "14px", boxSizing: "border-box" }}
+          style={{ padding: "12px", borderRadius: "var(--radius-lg)", borderColor: objeto.trim() === "" ? "var(--btn-danger)" : "var(--input-border)" }}
         />
       </div>
 
       <div>
-        <label style={{ fontWeight: "bold", fontSize: "16px", color: "#111827", display: "block", marginBottom: "8px" }}>
-          Justificativa da Demanda: <span style={{ color: "#DC2626" }}>*</span>
+        <label style={{ fontWeight: "600", fontSize: "16px", color: "var(--text-main)", display: "block", marginBottom: "8px" }}>
+          Justificativa da Demanda: <span style={{ color: "var(--btn-danger)" }}>*</span>
         </label>
-        <p style={{ color: "#6B7280", fontSize: "13px", margin: "0 0 12px 0" }}>Descreva brevemente a justificativa da demanda.</p>
+        <p style={{ color: "var(--text-muted)", fontSize: "13px", margin: "0 0 12px 0" }}>Descreva brevemente a justificativa da demanda.</p>
         <textarea 
           required
           value={necessidade}
           onChange={(e) => atualizarDados({ ...dados, necessidade: e.target.value })}
-          style={{ width: "100%", padding: "12px", borderRadius: "12px", border: necessidade.trim() === "" ? "1px solid #DC2626" : "1px solid #D1D5DB", fontSize: "14px", minHeight: "120px", resize: "vertical", boxSizing: "border-box" }}
+          style={{ padding: "12px", borderRadius: "var(--radius-lg)", borderColor: necessidade.trim() === "" ? "var(--btn-danger)" : "var(--input-border)", minHeight: "120px", resize: "vertical" }}
         />
       </div>
 
-      <div style={{ borderTop: "1px solid #E5E7EB", paddingTop: "24px" }}>
+      <div style={{ borderTop: "1px solid var(--border)", paddingTop: "24px" }}>
         <div style={{ display: "flex", gap: "12px", marginBottom: "16px", alignItems: "center" }}>
-          <button onClick={handleAdd} style={{ width: "140px", height: "38px", background: "#2563EB", color: "white", border: "none", borderRadius: "12px", fontWeight: "bold", cursor: "pointer" }}>+ Novo Item</button>
-          <button onClick={dispararImportacao} style={{ width: "140px", height: "38px", background: "#2563EB", color: "white", border: "none", borderRadius: "12px", fontWeight: "bold", cursor: "pointer" }}>Importar XLSX</button>
-          {itens.length === 0 && <span style={{ color: "#DC2626", fontSize: "13px", fontWeight: "bold" }}>Adicione pelo menos 1 item para avançar.</span>}
+          <button onClick={handleAdd} style={{ width: "140px", height: "38px", background: "var(--btn-primary)", color: "var(--bg-panel)", border: "none", borderRadius: "var(--radius-lg)" }}>+ Novo Item</button>
+          <button onClick={dispararImportacao} style={{ width: "140px", height: "38px", background: "var(--btn-primary)", color: "var(--bg-panel)", border: "none", borderRadius: "var(--radius-lg)" }}>Importar XLSX</button>
+          {itens.length === 0 && <span style={{ color: "var(--btn-danger)", fontSize: "13px", fontWeight: "600" }}>Adicione pelo menos 1 item para avançar.</span>}
         </div>
 
-        <div style={{ background: "#4B5563", color: "white", display: "flex", padding: "12px", borderRadius: "8px", fontWeight: "bold", fontSize: "13px" }}>
+        <div style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-text)", display: "flex", padding: "12px", borderRadius: "var(--radius)", fontWeight: "600", fontSize: "13px" }}>
           <div style={{ width: "40px" }}>#</div>
           <div style={{ flex: 1, minWidth: "150px" }}>Descrição</div>
           <div style={{ width: "60px" }}>UN</div>
@@ -183,12 +183,12 @@ export default function Step1({ dados = { itens: [], objeto: "", necessidade: ""
 
         <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px", maxHeight: "300px", overflowY: "auto", paddingRight: "4px" }}>
           {itens.map((item: any, index: number) => (
-            <div key={item.id} style={{ display: "flex", alignItems: "center", background: "#F3F4F6", padding: "8px 12px", borderRadius: "8px", gap: "8px" }}>
-              <div style={{ width: "40px", fontWeight: "bold", color: "#374151" }}>{item.numero || index + 1}</div>
+            <div key={item.id} style={{ display: "flex", alignItems: "center", background: "var(--bg-subtle)", padding: "8px 12px", borderRadius: "var(--radius)", gap: "8px" }}>
+              <div style={{ width: "40px", fontWeight: "600", color: "var(--text-main)" }}>{item.numero || index + 1}</div>
               
-              <input type="text" required value={item.descricao} onChange={(e) => handleChange(item.id, "descricao", e.target.value)} style={{ flex: 1, minWidth: "150px", padding: "8px", borderRadius: "8px", border: item.descricao.trim() === "" ? "1px solid #DC2626" : "1px solid #D1D5DB", boxSizing: "border-box" }} />
+              <input type="text" required value={item.descricao} onChange={(e) => handleChange(item.id, "descricao", e.target.value)} style={{ flex: 1, minWidth: "150px", padding: "8px", borderColor: item.descricao.trim() === "" ? "var(--btn-danger)" : "var(--input-border)" }} />
               
-              <input type="text" required value={item.un} onChange={(e) => handleChange(item.id, "un", e.target.value)} style={{ width: "60px", padding: "8px", borderRadius: "8px", border: item.un.trim() === "" ? "1px solid #DC2626" : "1px solid #D1D5DB", boxSizing: "border-box", textAlign: "center" }} />
+              <input type="text" required value={item.un} onChange={(e) => handleChange(item.id, "un", e.target.value)} style={{ width: "60px", padding: "8px", textAlign: "center", borderColor: item.un.trim() === "" ? "var(--btn-danger)" : "var(--input-border)" }} />
               
               <input 
                 type="number" 
@@ -198,26 +198,26 @@ export default function Step1({ dados = { itens: [], objeto: "", necessidade: ""
                 value={item.qtd} 
                 onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault(); }}
                 onChange={(e) => handleChange(item.id, "qtd", parseInt(e.target.value, 10) || "")} 
-                style={{ width: "80px", padding: "8px", borderRadius: "8px", border: Number(item.qtd) <= 0 ? "1px solid #DC2626" : "1px solid #D1D5DB", boxSizing: "border-box", textAlign: "right" }} 
+                style={{ width: "80px", padding: "8px", textAlign: "right", borderColor: Number(item.qtd) <= 0 ? "var(--btn-danger)" : "var(--input-border)" }} 
               />
               
-              <input type="text" required value={formatarMoeda(item.valor)} onChange={(e) => handleChange(item.id, "valor", parseMoeda(e.target.value))} style={{ width: "130px", padding: "8px", borderRadius: "8px", border: Number(item.valor) <= 0 ? "1px solid #DC2626" : "1px solid #D1D5DB", boxSizing: "border-box", textAlign: "right", fontFamily: "monospace" }} />
+              <input type="text" required value={formatarMoeda(item.valor)} onChange={(e) => handleChange(item.id, "valor", parseMoeda(e.target.value))} style={{ width: "130px", padding: "8px", textAlign: "right", fontFamily: "monospace", borderColor: Number(item.valor) <= 0 ? "var(--btn-danger)" : "var(--input-border)" }} />
               
-              <div style={{ width: "130px", fontWeight: "bold", color: "#111827", fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{formatarMoeda(Number(item.qtd) * Number(item.valor))}</div>
+              <div style={{ width: "130px", fontWeight: "600", color: "var(--text-main)", fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{formatarMoeda(Number(item.qtd) * Number(item.valor))}</div>
               
               <div style={{ width: "100px", display: "flex", gap: "4px", justifyContent: "flex-end" }}>
-                <button onClick={() => handleMover(index, -1)} style={{ width: "28px", height: "28px", borderRadius: "6px", border: "1px solid #D1D5DB", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>↑</button>
-                <button onClick={() => handleMover(index, 1)} style={{ width: "28px", height: "28px", borderRadius: "6px", border: "1px solid #D1D5DB", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>↓</button>
-                <button onClick={() => handleRemove(item.id)} style={{ width: "28px", height: "28px", borderRadius: "6px", border: "none", background: "#DC2626", color: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>X</button>
+                <button onClick={() => handleMover(index, -1)} style={{ width: "28px", height: "28px", border: "1px solid var(--border)", background: "var(--bg-panel)", color: "var(--text-main)", display: "flex", alignItems: "center", justifyContent: "center" }}>↑</button>
+                <button onClick={() => handleMover(index, 1)} style={{ width: "28px", height: "28px", border: "1px solid var(--border)", background: "var(--bg-panel)", color: "var(--text-main)", display: "flex", alignItems: "center", justifyContent: "center" }}>↓</button>
+                <button onClick={() => handleRemove(item.id)} style={{ width: "28px", height: "28px", border: "none", background: "var(--btn-danger)", color: "var(--bg-panel)", display: "flex", alignItems: "center", justifyContent: "center" }}>X</button>
               </div>
             </div>
           ))}
           {itens.length === 0 && (
-            <div style={{ padding: "20px", textAlign: "center", color: "#6B7280" }}>Nenhum item adicionado.</div>
+            <div style={{ padding: "20px", textAlign: "center", color: "var(--text-muted)" }}>Nenhum item adicionado.</div>
           )}
         </div>
 
-        <div style={{ textAlign: "right", marginTop: "16px", fontSize: "18px", fontWeight: "bold", color: "#111827" }}>
+        <div style={{ textAlign: "right", marginTop: "16px", fontSize: "18px", fontWeight: "600", color: "var(--text-main)" }}>
           TOTAL GERAL: {formatarMoeda(totalGeral)}
         </div>
       </div>

@@ -116,55 +116,55 @@ export default function Step4({ dados, atualizarDados }: any) {
     <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
       
       <div>
-        <h2 style={{ fontSize: "16px", margin: "0 0 8px 0", color: "#111827" }}>
-          Gestores do Contrato <span style={{ color: "#DC2626" }}>*</span>
+        <h2 style={{ fontSize: "16px", margin: "0 0 8px 0", color: "var(--text-main)" }}>
+          Gestores do Contrato <span style={{ color: "var(--btn-danger)" }}>*</span>
         </h2>
-        <p style={{ color: "#6B7280", margin: "0 0 16px 0", fontSize: "13px" }}>Adicione pelo menos um responsável pelo contrato.</p>
+        <p style={{ color: "var(--text-muted)", margin: "0 0 16px 0", fontSize: "13px" }}>Adicione pelo menos um responsável pelo contrato.</p>
         
-        <div style={{ background: "#F9FAFB", border: dados.gestores.length === 0 ? "1px solid #DC2626" : "1px solid #E5E7EB", borderRadius: "14px", padding: "20px" }}>
+        <div style={{ background: "var(--bg-subtle)", border: dados.gestores.length === 0 ? "1px solid var(--btn-danger)" : "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px" }}>
           <div style={{ display: "flex", gap: "12px", marginBottom: "20px", alignItems: "flex-end" }}>
             <div style={{ flex: 1 }}>
-              <label style={{ fontSize: "13px", fontWeight: "bold", color: "#374151", display: "block", marginBottom: "6px" }}>Nome</label>
+              <label style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-main)", display: "block", marginBottom: "6px" }}>Nome</label>
               <input 
                 type="text" 
                 value={gestorNome}
                 onChange={(e) => setGestorNome(e.target.value)}
-                style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #D1D5DB", fontSize: "13px", boxSizing: "border-box" }}
+                style={{ padding: "10px" }}
               />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ fontSize: "13px", fontWeight: "bold", color: "#374151", display: "block", marginBottom: "6px" }}>Cargo</label>
+              <label style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-main)", display: "block", marginBottom: "6px" }}>Cargo</label>
               <input 
                 type="text" 
                 value={gestorCargo}
                 onChange={(e) => setGestorCargo(e.target.value)}
-                style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #D1D5DB", fontSize: "13px", boxSizing: "border-box" }}
+                style={{ padding: "10px" }}
               />
             </div>
             <div style={{ display: "flex", gap: "6px" }}>
               <button 
                 onClick={handleAddGestor}
                 disabled={!gestorNome || !gestorCargo}
-                style={{ padding: "0 16px", height: "40px", background: (!gestorNome || !gestorCargo) ? "#9CA3AF" : "#2563EB", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", fontSize: "13px", cursor: (!gestorNome || !gestorCargo) ? "not-allowed" : "pointer" }}
+                style={{ padding: "0 16px", height: "40px", background: (!gestorNome || !gestorCargo) ? "var(--text-light)" : "var(--btn-primary)", color: "var(--bg-panel)", border: "none", fontSize: "13px", cursor: (!gestorNome || !gestorCargo) ? "not-allowed" : "pointer" }}
               >
                 Adicionar Gestor
               </button>
               <button 
                 onClick={() => setModalGestorAberto(true)}
-                style={{ padding: "0 12px", height: "40px", background: "#E5E7EB", color: "#374151", border: "1px solid #D1D5DB", borderRadius: "10px", fontWeight: "bold", fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }}
+                style={{ padding: "0 12px", height: "40px", background: "var(--bg-panel)", color: "var(--text-main)", border: "1px solid var(--border)", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}
               >
                 Usar dados salvos ▼
               </button>
             </div>
           </div>
 
-          <div style={{ background: "white", borderRadius: "10px", border: "1px solid #E5E7EB", minHeight: "80px", maxHeight: "150px", overflowY: "auto", padding: "8px", display: "flex", flexDirection: "column", gap: "4px" }}>
+          <div style={{ background: "var(--bg-panel)", borderRadius: "var(--radius)", border: "1px solid var(--border)", minHeight: "80px", maxHeight: "150px", overflowY: "auto", padding: "8px", display: "flex", flexDirection: "column", gap: "4px" }}>
             {dados.gestores.length === 0 && (
-              <div style={{ padding: "20px", textAlign: "center", color: "#9CA3AF", fontSize: "13px" }}>Nenhum gestor adicionado.</div>
+              <div style={{ padding: "20px", textAlign: "center", color: "var(--text-light)", fontSize: "13px" }}>Nenhum gestor adicionado.</div>
             )}
             {dados.gestores.map((gestor: any, index: number) => (
-              <div key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#F9FAFB", padding: "8px 16px", borderRadius: "8px", border: "1px solid #D1D5DB" }}>
-                <span style={{ fontSize: "13px", color: "#111827", fontWeight: "500" }}>{gestor.nome} — {gestor.cargo}</span>
+              <div key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-subtle)", padding: "8px 16px", borderRadius: "var(--radius)", border: "1px solid var(--border)" }}>
+                <span style={{ fontSize: "13px", color: "var(--text-main)", fontWeight: "500" }}>{gestor.nome} — {gestor.cargo}</span>
                 <div style={{ display: "flex", gap: "6px" }}>
                   <div style={{ display: "flex", gap: "6px" }}>
                     <button 
@@ -172,11 +172,9 @@ export default function Step4({ dados, atualizarDados }: any) {
                       disabled={gestoresSalvos.some(g => g.nome === gestor.nome && g.cargo === gestor.cargo)}
                       style={{ 
                         padding: "6px 12px", 
-                        background: gestoresSalvos.some(g => g.nome === gestor.nome && g.cargo === gestor.cargo) ? "#9CA3AF" : "#10B981", 
-                        color: "white", 
+                        background: gestoresSalvos.some(g => g.nome === gestor.nome && g.cargo === gestor.cargo) ? "var(--text-light)" : "var(--btn-success)", 
+                        color: "var(--bg-panel)", 
                         border: "none", 
-                        borderRadius: "6px", 
-                        fontWeight: "bold", 
                         fontSize: "11px", 
                         cursor: gestoresSalvos.some(g => g.nome === gestor.nome && g.cargo === gestor.cargo) ? "default" : "pointer" 
                       }}
@@ -186,7 +184,7 @@ export default function Step4({ dados, atualizarDados }: any) {
                   </div>
                   <button 
                     onClick={() => handleRemoveGestor(index)}
-                    style={{ padding: "6px 12px", background: "#DC2626", color: "white", border: "none", borderRadius: "6px", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}
+                    style={{ padding: "6px 12px", background: "var(--btn-danger)", color: "var(--bg-panel)", border: "none", fontSize: "11px" }}
                   >
                     Remover
                   </button>
@@ -198,55 +196,55 @@ export default function Step4({ dados, atualizarDados }: any) {
       </div>
 
       <div>
-        <h2 style={{ fontSize: "16px", margin: "0 0 8px 0", color: "#111827" }}>
-          Fiscais do Contrato <span style={{ color: "#DC2626" }}>*</span>
+        <h2 style={{ fontSize: "16px", margin: "0 0 8px 0", color: "var(--text-main)" }}>
+          Fiscais do Contrato <span style={{ color: "var(--btn-danger)" }}>*</span>
         </h2>
-        <p style={{ color: "#6B7280", margin: "0 0 16px 0", fontSize: "13px" }}>Registre pelo menos um fiscal responsável pelo acompanhamento.</p>
+        <p style={{ color: "var(--text-muted)", margin: "0 0 16px 0", fontSize: "13px" }}>Registre pelo menos um fiscal responsável pelo acompanhamento.</p>
         
-        <div style={{ background: "#F9FAFB", border: dados.fiscais.length === 0 ? "1px solid #DC2626" : "1px solid #E5E7EB", borderRadius: "14px", padding: "20px" }}>
+        <div style={{ background: "var(--bg-subtle)", border: dados.fiscais.length === 0 ? "1px solid var(--btn-danger)" : "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px" }}>
           <div style={{ display: "flex", gap: "12px", marginBottom: "20px", alignItems: "flex-end" }}>
             <div style={{ flex: 1 }}>
-              <label style={{ fontSize: "13px", fontWeight: "bold", color: "#374151", display: "block", marginBottom: "6px" }}>Nome</label>
+              <label style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-main)", display: "block", marginBottom: "6px" }}>Nome</label>
               <input 
                 type="text" 
                 value={fiscalNome}
                 onChange={(e) => setFiscalNome(e.target.value)}
-                style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #D1D5DB", fontSize: "13px", boxSizing: "border-box" }}
+                style={{ padding: "10px" }}
               />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ fontSize: "13px", fontWeight: "bold", color: "#374151", display: "block", marginBottom: "6px" }}>Cargo</label>
+              <label style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-main)", display: "block", marginBottom: "6px" }}>Cargo</label>
               <input 
                 type="text" 
                 value={fiscalCargo}
                 onChange={(e) => setFiscalCargo(e.target.value)}
-                style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #D1D5DB", fontSize: "13px", boxSizing: "border-box" }}
+                style={{ padding: "10px" }}
               />
             </div>
             <div style={{ display: "flex", gap: "6px" }}>
               <button 
                 onClick={handleAddFiscal}
                 disabled={!fiscalNome || !fiscalCargo}
-                style={{ padding: "0 16px", height: "40px", background: (!fiscalNome || !fiscalCargo) ? "#9CA3AF" : "#2563EB", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", fontSize: "13px", cursor: (!fiscalNome || !fiscalCargo) ? "not-allowed" : "pointer" }}
+                style={{ padding: "0 16px", height: "40px", background: (!fiscalNome || !fiscalCargo) ? "var(--text-light)" : "var(--btn-primary)", color: "var(--bg-panel)", border: "none", fontSize: "13px", cursor: (!fiscalNome || !fiscalCargo) ? "not-allowed" : "pointer" }}
               >
                 Adicionar Fiscal
               </button>
               <button 
                 onClick={() => setModalFiscalAberto(true)}
-                style={{ padding: "0 12px", height: "40px", background: "#E5E7EB", color: "#374151", border: "1px solid #D1D5DB", borderRadius: "10px", fontWeight: "bold", fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }}
+                style={{ padding: "0 12px", height: "40px", background: "var(--bg-panel)", color: "var(--text-main)", border: "1px solid var(--border)", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}
               >
                 Usar dados salvos ▼
               </button>
             </div>
           </div>
 
-          <div style={{ background: "white", borderRadius: "10px", border: "1px solid #E5E7EB", minHeight: "80px", maxHeight: "150px", overflowY: "auto", padding: "8px", display: "flex", flexDirection: "column", gap: "4px" }}>
+          <div style={{ background: "var(--bg-panel)", borderRadius: "var(--radius)", border: "1px solid var(--border)", minHeight: "80px", maxHeight: "150px", overflowY: "auto", padding: "8px", display: "flex", flexDirection: "column", gap: "4px" }}>
             {dados.fiscais.length === 0 && (
-              <div style={{ padding: "20px", textAlign: "center", color: "#9CA3AF", fontSize: "13px" }}>Nenhum fiscal adicionado.</div>
+              <div style={{ padding: "20px", textAlign: "center", color: "var(--text-light)", fontSize: "13px" }}>Nenhum fiscal adicionado.</div>
             )}
             {dados.fiscais.map((fiscal: any, index: number) => (
-              <div key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#F9FAFB", padding: "8px 16px", borderRadius: "8px", border: "1px solid #D1D5DB" }}>
-                <span style={{ fontSize: "13px", color: "#111827", fontWeight: "500" }}>{fiscal.nome} — {fiscal.cargo}</span>
+              <div key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-subtle)", padding: "8px 16px", borderRadius: "var(--radius)", border: "1px solid var(--border)" }}>
+                <span style={{ fontSize: "13px", color: "var(--text-main)", fontWeight: "500" }}>{fiscal.nome} — {fiscal.cargo}</span>
                 <div style={{ display: "flex", gap: "6px" }}>
                   <div style={{ display: "flex", gap: "6px" }}>
                     <button 
@@ -254,11 +252,9 @@ export default function Step4({ dados, atualizarDados }: any) {
                       disabled={fiscaisSalvos.some(f => f.nome === fiscal.nome && f.cargo === fiscal.cargo)}
                       style={{ 
                         padding: "6px 12px", 
-                        background: fiscaisSalvos.some(f => f.nome === fiscal.nome && f.cargo === fiscal.cargo) ? "#9CA3AF" : "#10B981", 
-                        color: "white", 
+                        background: fiscaisSalvos.some(f => f.nome === fiscal.nome && f.cargo === fiscal.cargo) ? "var(--text-light)" : "var(--btn-success)", 
+                        color: "var(--bg-panel)", 
                         border: "none", 
-                        borderRadius: "6px", 
-                        fontWeight: "bold", 
                         fontSize: "11px", 
                         cursor: fiscaisSalvos.some(f => f.nome === fiscal.nome && f.cargo === fiscal.cargo) ? "default" : "pointer" 
                       }}
@@ -268,7 +264,7 @@ export default function Step4({ dados, atualizarDados }: any) {
                   </div>
                   <button 
                     onClick={() => handleRemoveFiscal(index)}
-                    style={{ padding: "6px 12px", background: "#DC2626", color: "white", border: "none", borderRadius: "6px", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}
+                    style={{ padding: "6px 12px", background: "var(--btn-danger)", color: "var(--bg-panel)", border: "none", fontSize: "11px" }}
                   >
                     Remover
                   </button>
@@ -281,33 +277,33 @@ export default function Step4({ dados, atualizarDados }: any) {
 
       {modalGestorAberto && (
         <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}>
-          <div style={{ background: "white", padding: "24px", borderRadius: "16px", width: "100%", maxWidth: "450px", boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}>
+          <div style={{ background: "var(--bg-panel)", padding: "24px", borderRadius: "var(--radius-xl)", width: "100%", maxWidth: "450px", boxShadow: "var(--shadow-lg)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <h3 style={{ margin: 0, color: "#111827", fontSize: "18px" }}>Gestores Salvos</h3>
-              <button onClick={() => setModalGestorAberto(false)} style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "#6B7280" }}>×</button>
+              <h3 style={{ margin: 0, color: "var(--text-main)", fontSize: "18px" }}>Gestores Salvos</h3>
+              <button onClick={() => setModalGestorAberto(false)} style={{ background: "none", border: "none", fontSize: "20px", color: "var(--text-muted)" }}>×</button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "300px", overflowY: "auto" }}>
               {gestoresSalvos.length === 0 ? (
-                <p style={{ color: "#6B7280", fontSize: "14px", textAlign: "center" }}>Nenhum gestor salvo ainda.</p>
+                <p style={{ color: "var(--text-muted)", fontSize: "14px", textAlign: "center" }}>Nenhum gestor salvo ainda.</p>
               ) : (
                 gestoresSalvos.map((g, i) => {
                   const emUso = dados.gestores.some((dg: any) => dg.nome === g.nome && dg.cargo === g.cargo);
 
                   return (
-                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", border: "1px solid #E5E7EB", borderRadius: "8px", background: "#F9FAFB" }}>
-                      <div style={{ fontSize: "13px", color: "#374151" }}>
-                        <div style={{ fontWeight: "bold" }}>{g.nome}</div>
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", border: "1px solid var(--border)", borderRadius: "var(--radius)", background: "var(--bg-subtle)" }}>
+                      <div style={{ fontSize: "13px", color: "var(--text-main)" }}>
+                        <div style={{ fontWeight: "600" }}>{g.nome}</div>
                         <div>{g.cargo}</div>
                       </div>
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button 
                           onClick={() => handleUsarGestorSalvo(g)} 
                           disabled={emUso}
-                          style={{ padding: "6px 12px", background: emUso ? "#9CA3AF" : "#2563EB", color: "white", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: "bold", cursor: emUso ? "not-allowed" : "pointer" }}
+                          style={{ padding: "6px 12px", background: emUso ? "var(--text-light)" : "var(--btn-primary)", color: "var(--bg-panel)", border: "none", fontSize: "12px", cursor: emUso ? "not-allowed" : "pointer" }}
                         >
                           {emUso ? "Em uso" : "Usar"}
                         </button>
-                        <button onClick={() => handleApagarGestorSalvo(i)} style={{ padding: "6px 8px", background: "#FEE2E2", color: "#DC2626", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: "bold", cursor: "pointer" }}>Apagar</button>
+                        <button onClick={() => handleApagarGestorSalvo(i)} style={{ padding: "6px 8px", background: "rgba(220,38,38,0.15)", color: "var(--btn-danger)", border: "none", fontSize: "12px" }}>Apagar</button>
                       </div>
                     </div>
                   );
@@ -315,7 +311,7 @@ export default function Step4({ dados, atualizarDados }: any) {
               )}
             </div>
             <div style={{ marginTop: "20px", textAlign: "right" }}>
-              <button onClick={() => setModalGestorAberto(false)} style={{ padding: "8px 16px", background: "#E5E7EB", color: "#374151", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer" }}>Fechar</button>
+              <button onClick={() => setModalGestorAberto(false)} style={{ padding: "8px 16px", background: "var(--bg-subtle)", color: "var(--text-main)", border: "none" }}>Fechar</button>
             </div>
           </div>
         </div>
@@ -323,33 +319,33 @@ export default function Step4({ dados, atualizarDados }: any) {
 
       {modalFiscalAberto && (
         <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}>
-          <div style={{ background: "white", padding: "24px", borderRadius: "16px", width: "100%", maxWidth: "450px", boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}>
+          <div style={{ background: "var(--bg-panel)", padding: "24px", borderRadius: "var(--radius-xl)", width: "100%", maxWidth: "450px", boxShadow: "var(--shadow-lg)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <h3 style={{ margin: 0, color: "#111827", fontSize: "18px" }}>Fiscais Salvos</h3>
-              <button onClick={() => setModalFiscalAberto(false)} style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "#6B7280" }}>×</button>
+              <h3 style={{ margin: 0, color: "var(--text-main)", fontSize: "18px" }}>Fiscais Salvos</h3>
+              <button onClick={() => setModalFiscalAberto(false)} style={{ background: "none", border: "none", fontSize: "20px", color: "var(--text-muted)" }}>×</button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "300px", overflowY: "auto" }}>
               {fiscaisSalvos.length === 0 ? (
-                <p style={{ color: "#6B7280", fontSize: "14px", textAlign: "center" }}>Nenhum fiscal salvo ainda.</p>
+                <p style={{ color: "var(--text-muted)", fontSize: "14px", textAlign: "center" }}>Nenhum fiscal salvo ainda.</p>
               ) : (
                 fiscaisSalvos.map((f, i) => {
                   const emUso = dados.fiscais.some((df: any) => df.nome === f.nome && df.cargo === f.cargo);
 
                   return (
-                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", border: "1px solid #E5E7EB", borderRadius: "8px", background: "#F9FAFB" }}>
-                      <div style={{ fontSize: "13px", color: "#374151" }}>
-                        <div style={{ fontWeight: "bold" }}>{f.nome}</div>
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", border: "1px solid var(--border)", borderRadius: "var(--radius)", background: "var(--bg-subtle)" }}>
+                      <div style={{ fontSize: "13px", color: "var(--text-main)" }}>
+                        <div style={{ fontWeight: "600" }}>{f.nome}</div>
                         <div>{f.cargo}</div>
                       </div>
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button 
                           onClick={() => handleUsarFiscalSalvo(f)} 
                           disabled={emUso}
-                          style={{ padding: "6px 12px", background: emUso ? "#9CA3AF" : "#2563EB", color: "white", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: "bold", cursor: emUso ? "not-allowed" : "pointer" }}
+                          style={{ padding: "6px 12px", background: emUso ? "var(--text-light)" : "var(--btn-primary)", color: "var(--bg-panel)", border: "none", fontSize: "12px", cursor: emUso ? "not-allowed" : "pointer" }}
                         >
                           {emUso ? "Em uso" : "Usar"}
                         </button>
-                        <button onClick={() => handleApagarFiscalSalvo(i)} style={{ padding: "6px 8px", background: "#FEE2E2", color: "#DC2626", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: "bold", cursor: "pointer" }}>Apagar</button>
+                        <button onClick={() => handleApagarFiscalSalvo(i)} style={{ padding: "6px 8px", background: "rgba(220,38,38,0.15)", color: "var(--btn-danger)", border: "none", fontSize: "12px" }}>Apagar</button>
                       </div>
                     </div>
                   );
@@ -357,7 +353,7 @@ export default function Step4({ dados, atualizarDados }: any) {
               )}
             </div>
             <div style={{ marginTop: "20px", textAlign: "right" }}>
-              <button onClick={() => setModalFiscalAberto(false)} style={{ padding: "8px 16px", background: "#E5E7EB", color: "#374151", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer" }}>Fechar</button>
+              <button onClick={() => setModalFiscalAberto(false)} style={{ padding: "8px 16px", background: "var(--bg-subtle)", color: "var(--text-main)", border: "none" }}>Fechar</button>
             </div>
           </div>
         </div>
