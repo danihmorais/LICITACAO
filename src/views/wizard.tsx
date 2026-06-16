@@ -46,10 +46,6 @@ export default function Wizard() {
   const [mostrarConfig, setMostrarConfig] = useState(false);
   const { theme, toggleTheme } = useContext(ThemeContext);
   const isDark = theme === "dark";
-  const bgBody = isDark ? "#111827" : "#F3F4F6";
-  const bgCard = isDark ? "#1F2937" : "#FFFFFF";
-  const textColor = isDark ? "#F9FAFB" : "#111827";
-  const textMuted = isDark ? "#9CA3AF" : "#6B7280";
   const [mostrarPromptModal, setMostrarPromptModal] = useState(false);
 
   const atualizarDados = (novosDados: Partial<typeof dados>) => {
@@ -187,13 +183,13 @@ export default function Wizard() {
         alignItems: "center",
         justifyContent: "center",
         height: "100vh",
-        background: "#F3F4F6"
+        backgroundColor: "var(--bg-base)"
       }}>
         <div style={{
-          background: "white",
+          background: "var(--bg-panel)",
           padding: "40px",
           borderRadius: "24px",
-          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+          boxShadow: "var(--shadow-lg)",
           textAlign: "center",
           width: "100%",
           maxWidth: "620px"
@@ -201,12 +197,12 @@ export default function Wizard() {
           {erroMsg && (
             <>
               <div style={{ fontSize: "44px", marginBottom: "12px" }}>⚠️</div>
-              <h2 style={{ margin: "0 0 16px 0", color: "#DC2626", fontSize: "22px" }}>
+              <h2 style={{ margin: "0 0 16px 0", color: "var(--btn-danger)", fontSize: "22px" }}>
                 Erro na Geração
               </h2>
               <div style={{
-                background: "#FEF2F2",
-                border: "1px solid #FCA5A5",
+                background: "var(--bg-subtle)",
+                border: "1px solid var(--btn-danger)",
                 borderRadius: "10px",
                 padding: "16px",
                 marginBottom: "24px",
@@ -215,7 +211,7 @@ export default function Wizard() {
                 overflowY: "auto"
               }}>
                 <pre style={{
-                  color: "#7F1D1D",
+                  color: "var(--btn-danger)",
                   fontSize: "13px",
                   margin: 0,
                   whiteSpace: "pre-wrap",
@@ -229,8 +225,8 @@ export default function Wizard() {
                 onClick={() => { setCarregando(false); setErroMsg(null); }}
                 style={{
                   padding: "12px 32px",
-                  background: "#2563EB",
-                  color: "white",
+                  background: "var(--btn-primary)",
+                  color: "#ffffff",
                   border: "none",
                   borderRadius: "12px",
                   fontWeight: "bold",
@@ -246,15 +242,15 @@ export default function Wizard() {
           {geracaoSucesso && !erroMsg && (
             <>
               <div style={{ fontSize: "44px", marginBottom: "12px" }}>✅</div>
-              <h2 style={{ margin: "0 0 16px 0", color: "#059669", fontSize: "22px" }}>
+              <h2 style={{ margin: "0 0 16px 0", color: "var(--btn-success)", fontSize: "22px" }}>
                 Documentos Gerados com Sucesso!
               </h2>
-              <p style={{ color: "#6B7280", margin: "0 0 24px 0", fontSize: "14px" }}>
+              <p style={{ color: "var(--text-muted)", margin: "0 0 24px 0", fontSize: "14px" }}>
                 Os arquivos foram salvos na pasta{" "}
                 <span
                   onClick={() => invoke("abrir_pasta_documentos")}
                   style={{
-                    color: "#2563EB",
+                    color: "var(--btn-primary)",
                     fontWeight: "bold",
                     cursor: "pointer",
                     textDecoration: "underline",
@@ -267,8 +263,8 @@ export default function Wizard() {
                 onClick={() => { setCarregando(false); setGeracaoSucesso(false); }}
                 style={{
                   padding: "12px 32px",
-                  background: "#059669",
-                  color: "white",
+                  background: "var(--btn-success)",
+                  color: "#ffffff",
                   border: "none",
                   borderRadius: "12px",
                   fontWeight: "bold",
@@ -283,26 +279,26 @@ export default function Wizard() {
 
           {!erroMsg && !geracaoSucesso && (
             <>
-              <h2 style={{ margin: "0 0 16px 0", color: "#111827", fontSize: "24px" }}>
+              <h2 style={{ margin: "0 0 16px 0", color: "var(--text-main)", fontSize: "24px" }}>
                 Gerando Artefatos com IA
               </h2>
-              <p style={{ color: "#6B7280", margin: "0 0 24px 0" }}>{statusTexto}</p>
+              <p style={{ color: "var(--text-muted)", margin: "0 0 24px 0" }}>{statusTexto}</p>
               <div style={{
                 width: "100%",
                 height: "6px",
-                background: "#E5E7EB",
+                background: "var(--border)",
                 borderRadius: "4px",
                 overflow: "hidden"
               }}>
                 <div style={{
                   width: "50%",
                   height: "100%",
-                  background: "#2563EB",
+                  background: "var(--btn-primary)",
                   transition: "width 0.3s",
                   animation: "progress 2s infinite"
                 }} />
               </div>
-              <p style={{ color: "#9CA3AF", fontSize: "12px", marginTop: "16px" }}>
+              <p style={{ color: "var(--text-light)", fontSize: "12px", marginTop: "16px" }}>
                 Este processo pode levar alguns minutos...
               </p>
             </>
@@ -316,32 +312,32 @@ export default function Wizard() {
   const podeAvancar = validarEtapa();
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", backgroundColor: bgBody, transition: "background-color 0.3s", fontFamily: "sans-serif" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", backgroundColor: "var(--bg-base)", transition: "background-color 0.3s", fontFamily: "sans-serif" }}>
       <div style={{ padding: "24px 40px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: "22px", color: textColor }}>
+            <h1 style={{ margin: 0, fontSize: "22px", color: "var(--text-main)" }}>
               {etapaAtual === 0 && "Etapa 1: Objeto e Justificativa"}
               {etapaAtual === 1 && "Etapa 2: Condições de Execução"}
               {etapaAtual === 2 && "Etapa 3: Unidade Demandante"}
               {etapaAtual === 3 && "Etapa 4: Equipe de Planejamento"}
               {etapaAtual === 4 && "Etapa 5: Definição do Instrumento"}
             </h1>
-            <p style={{ margin: "4px 0 0 0", color: textMuted, fontSize: "14px" }}>
+            <p style={{ margin: "4px 0 0 0", color: "var(--text-muted)", fontSize: "14px" }}>
               Forneça os dados do processo com clareza para gerar os artefatos corretamente.
             </p>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ color: textMuted, fontWeight: "bold", fontSize: "14px" }}>
+          <span style={{ color: "var(--text-muted)", fontWeight: "bold", fontSize: "14px" }}>
             Passo {etapaAtual + 1} de 5
           </span>
 
           <button
             onClick={() => setMostrarConfig(true)}
             style={{
-              background: "white",
-              border: "1px solid #D1D5DB",
+              background: "var(--bg-panel)",
+              border: "1px solid var(--border)",
               borderRadius: "8px",
               width: "44px",
               height: "44px",
@@ -349,7 +345,7 @@ export default function Wizard() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+              boxShadow: "var(--shadow-sm)",
               fontSize: "20px"
             }}
             title="Configurações de IA"
@@ -358,7 +354,7 @@ export default function Wizard() {
           </button>
                 <button 
         onClick={toggleTheme} 
-        style={{ width: "44px", height: "44px", borderRadius: "8px", border: "none", cursor: "pointer", background: isDark ? "#374151" : "#E5E7EB", color: textColor }}
+        style={{ width: "44px", height: "44px", borderRadius: "8px", border: "none", cursor: "pointer", background: "var(--bg-subtle)", color: "var(--text-main)" }}
       >
         {isDark ? "☀️" : "🌙"}
       </button>
@@ -368,10 +364,10 @@ export default function Wizard() {
       <div style={{ flex: 1, padding: "0 40px", overflow: "hidden" }}>
         <div style={{
           height: "100%",
-          background: "white",
+          background: "var(--bg-panel)",
           borderRadius: "24px",
-          boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
-          border: "1px solid #E5E7EB",
+          boxShadow: "var(--shadow-md)",
+          border: "1px solid var(--border)",
           padding: "16px"
         }}>
           <div ref={scrollRef} style={{ height: "100%", overflowY: "auto", padding: "16px" }}>
@@ -387,9 +383,9 @@ export default function Wizard() {
             width: "140px",
             height: "44px",
             borderRadius: "12px",
-            border: "2px solid #D1D5DB",
+            border: "2px solid var(--border)",
             background: "transparent",
-            color: "#374151",
+            color: "var(--text-main)",
             fontWeight: "bold",
             fontSize: "14px",
             cursor: etapaAtual === 0 ? "not-allowed" : "pointer",
@@ -406,8 +402,8 @@ export default function Wizard() {
             height: "44px",
             borderRadius: "12px",
             border: "none",
-            background: !podeAvancar ? "#9CA3AF" : (etapaAtual === 4 ? "#22C55E" : "#2563EB"),
-            color: "white",
+            background: !podeAvancar ? "var(--text-light)" : (etapaAtual === 4 ? "var(--btn-success)" : "var(--btn-primary)"),
+            color: "#ffffff",
             fontWeight: "bold",
             fontSize: "14px",
             cursor: !podeAvancar ? "not-allowed" : "pointer"
@@ -419,22 +415,21 @@ export default function Wizard() {
       
       {mostrarConfig && (
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ background: "white", padding: "32px", borderRadius: "24px", width: "100%", maxWidth: "500px", position: "relative", boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}>
+          <div style={{ background: "var(--bg-panel)", padding: "32px", borderRadius: "24px", width: "100%", maxWidth: "500px", position: "relative", boxShadow: "var(--shadow-lg)" }}>
             <button 
               onClick={() => {
                 setMostrarConfig(false);
               }} 
-              style={{ position: "absolute", top: "20px", right: "20px", background: "#F3F4F6", border: "none", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#4B5563", fontWeight: "bold" }}
+              style={{ position: "absolute", top: "20px", right: "20px", background: "var(--bg-subtle)", border: "none", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--text-muted)", fontWeight: "bold" }}
             >
               ✕
             </button>
-            <h2 style={{ marginTop: 0, marginBottom: "24px", color: "#111827", textAlign: "center", fontSize: "20px" }}>
+            <h2 style={{ marginTop: 0, marginBottom: "24px", color: "var(--text-main)", textAlign: "center", fontSize: "20px" }}>
               ⚙️ Configurações de IA
             </h2>
             <ConfigIA 
               onSuccess={() => setMostrarConfig(false)} 
               textoBotao="Salvar Alterações" 
-              temaEscuro={false} 
             />
           </div>
         </div>

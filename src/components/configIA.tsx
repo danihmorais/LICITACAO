@@ -5,17 +5,12 @@ import { validarChaveGemini, validarChaveOpenRouter } from "../providers/llm";
 interface ConfigIAProps {
   onSuccess?: () => void;
   textoBotao?: string;
-  temaEscuro?: boolean;
 }
 
-export default function ConfigIA({ onSuccess, textoBotao = "Acessar Sistema", temaEscuro = false }: ConfigIAProps) {
+export default function ConfigIA({ onSuccess, textoBotao = "Acessar Sistema" }: ConfigIAProps) {
   const [provedor, setProvedor] = useState("gemini");
   const [chaveApi, setChaveApi] = useState("");
   const [carregando, setCarregando] = useState(false);
-
-  const textColor = temaEscuro ? "#F9FAFB" : "#111827";
-  const inputBg = temaEscuro ? "#374151" : "#FFFFFF";
-  const inputBorder = temaEscuro ? "#4B5563" : "#D1D5DB";
 
   useEffect(() => {
     console.log("Lendo configurações de IA salvas...");
@@ -82,17 +77,17 @@ export default function ConfigIA({ onSuccess, textoBotao = "Acessar Sistema", te
 
   return (
     <div>
-      <h3 style={{ fontSize: "16px", color: textColor, marginBottom: "16px", textAlign: "center" }}>
+      <h3 style={{ fontSize: "16px", color: "var(--text-main)", marginBottom: "16px", textAlign: "center" }}>
         Selecione o motor de Inteligência Artificial
       </h3>
-      <div style={{ display: "flex", justifyContent: "center", gap: "24px", marginBottom: "35px", color: textColor }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: "24px", marginBottom: "35px", color: "var(--text-main)" }}>
         <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
           <input 
             type="radio" 
             value="gemini" 
             checked={provedor === "gemini"} 
             onChange={(e) => setProvedor(e.target.value)} 
-            style={{accentColor: "#2563EB", outline: "none", boxShadow: "none"}} 
+            style={{accentColor: "var(--btn-primary)", outline: "none", boxShadow: "none"}} 
           />
           Google Gemini
         </label>
@@ -102,7 +97,7 @@ export default function ConfigIA({ onSuccess, textoBotao = "Acessar Sistema", te
             value="openrouter" 
             checked={provedor === "openrouter"} 
             onChange={(e) => setProvedor(e.target.value)} 
-            style={{accentColor: "#2563EB", outline: "none", boxShadow: "none"}} 
+            style={{accentColor: "var(--btn-primary)", outline: "none", boxShadow: "none"}} 
           />
           OpenRouter
         </label>
@@ -110,7 +105,7 @@ export default function ConfigIA({ onSuccess, textoBotao = "Acessar Sistema", te
 
       <form onSubmit={salvar} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
         <div style={{ textAlign: "left" }}>
-          <label style={{ fontWeight: "bold", fontSize: "14px", color: textColor, display: "block", marginBottom: "8px" }}>
+          <label style={{ fontWeight: "bold", fontSize: "14px", color: "var(--text-main)", display: "block", marginBottom: "8px" }}>
             Chave de API
           </label>
           <input 
@@ -119,15 +114,15 @@ export default function ConfigIA({ onSuccess, textoBotao = "Acessar Sistema", te
             value={chaveApi}
             onChange={(e) => setChaveApi(e.target.value)}
             required
-            style={{ width: "100%", padding: "14px", borderRadius: "14px", border: `1px solid ${inputBorder}`, backgroundColor: inputBg, color: textColor, fontSize: "14px", boxSizing: "border-box" }}
+            style={{ width: "100%", padding: "14px", borderRadius: "14px", border: "1px solid var(--input-border)", backgroundColor: "var(--input-bg)", color: "var(--text-main)", fontSize: "14px", boxSizing: "border-box" }}
           />
         </div>
         
-        <button type="button" onClick={abrirAjuda} style={{ background: "none", border: "none", color: "#3B82F6", cursor: "pointer", fontSize: "13px", textAlign: "left", padding: 0 }}>
+        <button type="button" onClick={abrirAjuda} style={{ background: "none", border: "none", color: "var(--btn-primary)", cursor: "pointer", fontSize: "13px", textAlign: "left", padding: 0 }}>
           Não tem uma chave? Saiba como obter gratuitamente.
         </button>
 
-        <button type="submit" disabled={carregando} style={{ marginTop: "24px", padding: "16px", backgroundColor: "#2563EB", color: "white", border: "none", borderRadius: "14px", fontSize: "16px", fontWeight: "bold", cursor: carregando ? "not-allowed" : "pointer" }}>
+        <button type="submit" disabled={carregando} style={{ marginTop: "24px", padding: "16px", backgroundColor: "var(--btn-primary)", color: "#ffffff", border: "none", borderRadius: "14px", fontSize: "16px", fontWeight: "bold", cursor: carregando ? "not-allowed" : "pointer" }}>
           {carregando ? "Validando..." : textoBotao}
         </button>
       </form>

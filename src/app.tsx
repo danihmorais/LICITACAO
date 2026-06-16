@@ -12,10 +12,6 @@ export default function App() {
   const { theme, toggleTheme } = useContext(ThemeContext);
 
   const isDark = theme === "dark";
-  const bgBody = isDark ? "#111827" : "#F3F4F6";
-  const bgCard = isDark ? "#1F2937" : "#FFFFFF";
-  const textColor = isDark ? "#F9FAFB" : "#111827";
-  const textMuted = isDark ? "#9CA3AF" : "#6B7280";
 
   useEffect(() => {
     verificarApis();
@@ -56,34 +52,34 @@ export default function App() {
     if (statusGemini === null || statusOpenRouter === null) {
       return {
         texto: "Verificando disponibilidade das APIs...",
-        cor: "#6B7280",
+        cor: "var(--text-muted)",
       };
     }
 
     if (statusGemini && statusOpenRouter) {
       return {
         texto: "Conectado às APIs Gemini e OpenRouter",
-        cor: "#22C55E",
+        cor: "var(--btn-success)",
       };
     }
 
     if (statusGemini && !statusOpenRouter) {
       return {
         texto: "Conectado à API Gemini (OpenRouter indisponível - Contate o suporte)",
-        cor: "#F59E0B",
+        cor: "var(--btn-warning)",
       };
     }
 
     if (!statusGemini && statusOpenRouter) {
       return {
         texto: "Conectado à API OpenRouter (Gemini indisponível - Contate o suporte)",
-        cor: "#F59E0B",
+        cor: "var(--btn-warning)",
       };
     }
 
     return {
       texto: "Falha de conexão às APIs. Contate o suporte",
-      cor: "#EF4444",
+      cor: "var(--btn-danger)",
     };
   };
 
@@ -94,27 +90,26 @@ export default function App() {
   }
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: bgBody, transition: "background-color 0.3s", fontFamily: "sans-serif" }}>
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "var(--bg-base)", transition: "background-color 0.3s", fontFamily: "sans-serif" }}>
       
       <button 
         onClick={toggleTheme} 
-        style={{ position: "absolute", top: "20px", right: "20px", padding: "8px 16px", borderRadius: "8px", border: "none", cursor: "pointer", background: isDark ? "#374151" : "#E5E7EB", color: textColor }}
+        style={{ position: "absolute", top: "20px", right: "20px", padding: "8px 16px", borderRadius: "8px", border: "none", cursor: "pointer", background: "var(--bg-subtle)", color: "var(--text-main)" }}
       >
         {isDark ? "☀️ Modo Claro" : "🌙 Modo Escuro"}
       </button>
 
-      <div style={{ background: bgCard, padding: "40px", borderRadius: "24px", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", width: "100%", maxWidth: "600px", textAlign: "center", transition: "background-color 0.3s" }}>
+      <div style={{ background: "var(--bg-panel)", padding: "40px", borderRadius: "24px", boxShadow: "var(--shadow-lg)", width: "100%", maxWidth: "600px", textAlign: "center", transition: "background-color 0.3s" }}>
         
         <img src={logo} alt="Licita.AI Logo" style={{ width: "90px", marginBottom: "16px" }} />
-        <h1 style={{ margin: "0 0 8px 0", fontSize: "34px", color: textColor }}>Licita.AI</h1>
-        <p style={{ color: textMuted, marginBottom: "35px" }}>
+        <h1 style={{ margin: "0 0 8px 0", fontSize: "34px", color: "var(--text-main)" }}>Licita.AI</h1>
+        <p style={{ color: "var(--text-muted)", marginBottom: "35px" }}>
           Automatize a criação de DFD, ETP e TR com Inteligência Artificial
         </p>
 
         <ConfigIA 
           onSuccess={() => setLogado(true)} 
           textoBotao="Acessar Sistema" 
-          temaEscuro={isDark} 
         />
 
         <div
@@ -124,7 +119,7 @@ export default function App() {
             alignItems: "center",
             marginTop: "30px",
             fontSize: "12px",
-            color: textMuted,
+            color: "var(--text-muted)",
           }}
         >
           <span
