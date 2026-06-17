@@ -1,5 +1,7 @@
 import { writeTextFile, exists, mkdir, BaseDirectory } from '@tauri-apps/plugin-fs';
 
+const MAX_TENTATIVAS = 3;
+
 async function salvarLogErro(prefixo: string, erro: any, dadosCrus: any = null) {
   try {
     const logsDirExists = await exists("logs", { baseDir: BaseDirectory.AppData });
@@ -22,7 +24,6 @@ async function salvarLogErro(prefixo: string, erro: any, dadosCrus: any = null) 
     }
 
     await writeTextFile(filename, conteudo, { baseDir: BaseDirectory.AppData });
-    console.log(`Log de erro salvo em: AppData/logs/${filename}`);
   } catch (e) {}
 }
 
@@ -34,26 +35,45 @@ function sanitizarJSON(texto: string): string {
   for (let i = 0; i < texto.length; i++) {
     const char = texto[i];
 
-    if (char === '"' && !isEscaped) {
-      inString = !inString;
+    if (!inString) {
+      if (char === '"') {
+        inString = true;
+      }
       result += char;
-    } else if (char === '\\' && !isEscaped) {
-      isEscaped = true;
-      result += char;
-    } else {
-      if (inString) {
+      continue;
+    }
+
+    if (isEscaped) {
+      const validEscapes = ['"', '\\', '/', 'b', 'f', 'n', 'r', 't', 'u'];
+      if (validEscapes.includes(char)) {
+        result += char;
+      } else {
+        result = result.slice(0, -1);
         if (char === '\n') {
           result += '\\n';
         } else if (char === '\r') {
         } else if (char === '\t') {
           result += '\\t';
-        } else {
+        } else if (char.charCodeAt(0) >= 32) {
           result += char;
         }
-      } else {
-        result += char;
       }
       isEscaped = false;
+    } else {
+      if (char === '\\') {
+        isEscaped = true;
+        result += '\\';
+      } else if (char === '"') {
+        inString = false;
+        result += '"';
+      } else if (char === '\n') {
+        result += '\\n';
+      } else if (char === '\r') {
+      } else if (char === '\t') {
+        result += '\\t';
+      } else if (char.charCodeAt(0) >= 32) {
+        result += char;
+      }
     }
   }
   return result;
@@ -80,15 +100,55 @@ function extrairEConverterJSON(rawText: string): any {
         sanitizado = sanitizado.replace(/,\s*([\}\]])/g, '$1');
         return JSON.parse(sanitizado);
       } catch (e3) {
-        throw new Error(`Falha crítica de parse no JSON. Erro: ${e3 instanceof Error ? e3.message : e3}\n\nRaw Text: ${rawText.substring(0, 500)}...`);
+        throw new Error(`O texto gerado pela IA foi interrompido abruptamente ou está corrompido.\nErro técnico: ${e3 instanceof Error ? e3.message : e3}`);
       }
     }
   }
 }
 
+export async function obterMelhorModelo(provedor: string, apiKey: string): Promise<string> {
+  if (provedor === "gemini") {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-pro:generateContent?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: "teste" }] }],
+          generationConfig: { maxOutputTokens: 1 }
+        })
+      });
+      if (response.ok) {
+        return "gemini-3.5-pro";
+      }
+    } catch (e) {}
+    return "gemini-3.5-flash";
+  } else {
+    try {
+      const url = "https://openrouter.ai/api/v1/chat/completions";
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "anthropic/claude-3.5-sonnet",
+          max_tokens: 1,
+          messages: [{ role: "user", content: "teste" }]
+        })
+      });
+      if (response.ok) {
+        return "anthropic/claude-3.5-sonnet";
+      }
+    } catch (e) {}
+    return "openrouter/free";
+  }
+}
+
 export async function validarChaveGemini(apiKey: string): Promise<boolean> {
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -136,101 +196,122 @@ export async function validarChaveOpenRouter(apiKey: string): Promise<boolean> {
   }
 }
 
-export async function gerarTextoGemini(prompt: string, apiKey: string, model: string = "gemini-2.5-flash"): Promise<any> {
+export async function gerarTextoGemini(prompt: string, apiKey: string, model: string): Promise<any> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
   
-  let response;
-  try {
-    response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.3,
-          maxOutputTokens: 8192,
-          responseMimeType: "application/json"
+  let tentativaAtual = 0;
+  let ultimoErro = "";
+
+  while (tentativaAtual < MAX_TENTATIVAS) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 8192,
+            responseMimeType: "application/json"
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text().catch(() => "Sem detalhes");
+        if (response.status === 503 || response.status === 429 || response.status === 500 || response.status === 502) {
+          throw new Error(`Erro temporário no servidor (HTTP ${response.status})`);
         }
-      })
-    });
-  } catch (networkError) {
-    await salvarLogErro("gemini-network-error", networkError);
-    throw new Error("Falha de rede ao conectar com a API do Gemini.");
-  }
+        throw new Error(`FATAL: Erro na API do Gemini (HTTP ${response.status}): ${errorData}`);
+      }
 
-  if (!response.ok) {
-    const errorData = await response.text();
-    await salvarLogErro("gemini-http-error", `HTTP ${response.status}`, errorData);
-    throw new Error(`Erro na API do Gemini (HTTP ${response.status}): ${errorData}`);
-  }
+      const data = await response.json();
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+        throw new Error("A API retornou uma resposta vazia ou bloqueada pelos filtros de segurança.");
+      }
+      
+      const rawText = data.candidates[0].content.parts[0].text;
+      
+      return extrairEConverterJSON(rawText);
 
-  let data;
-  try {
-    data = await response.json();
-  } catch (jsonError) {
-    const rawText = await response.text();
-    await salvarLogErro("gemini-response-not-json", jsonError, rawText);
-    throw new Error("A API do Gemini não retornou um JSON válido na camada HTTP.");
-  }
-  
-  try {
-    const rawText = data.candidates[0].content.parts[0].text;
-    return extrairEConverterJSON(rawText);
-  } catch (err) {
-    await salvarLogErro("gemini-parse-error", err, data);
-    throw err;
+    } catch (erro: any) {
+      ultimoErro = erro.message || String(erro);
+      tentativaAtual++;
+      
+      // Se for um erro fatal de senha incorreta (401, 400), não precisa ficar tentando de novo
+      if (ultimoErro.startsWith("FATAL:")) {
+        await salvarLogErro("gemini-erro-fatal", erro);
+        throw new Error(ultimoErro.replace("FATAL: ", ""));
+      }
+
+      if (tentativaAtual >= MAX_TENTATIVAS) {
+        await salvarLogErro("gemini-falha-limite", erro);
+        throw new Error(`O sistema tentou ${MAX_TENTATIVAS} vezes, mas a inteligência artificial não conseguiu concluir o texto corretamente. Por favor, tente novamente.\nÚltimo erro: ${ultimoErro}`);
+      }
+
+      // Espera de 2 ou 4 segundos antes de realizar uma nova tentativa com a IA
+      await new Promise(r => setTimeout(r, tentativaAtual * 2000));
+    }
   }
 }
 
-export async function gerarTextoOpenRouter(prompt: string, apiKey: string, model: string = "openrouter/free"): Promise<any> {
+export async function gerarTextoOpenRouter(prompt: string, apiKey: string, model: string): Promise<any> {
   const url = "https://openrouter.ai/api/v1/chat/completions";
 
-  let response;
-  try {
-    response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: model,
-        temperature: 0.3,
-        max_tokens: 8000,
-        response_format: { type: "json_object" },
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
-  } catch (networkError) {
-    await salvarLogErro("openrouter-network-error", networkError);
-    throw new Error("Falha de rede ao conectar com a API do OpenRouter.");
-  }
+  let tentativaAtual = 0;
+  let ultimoErro = "";
 
-  if (!response.ok) {
-    const errorData = await response.text();
-    await salvarLogErro("openrouter-http-error", `HTTP ${response.status}`, errorData);
-    throw new Error(`Erro na API do OpenRouter (HTTP ${response.status}): ${errorData}`);
-  }
+  while (tentativaAtual < MAX_TENTATIVAS) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: model,
+          temperature: 0.3,
+          max_tokens: 8000,
+          response_format: { type: "json_object" },
+          messages: [{ role: "user", content: prompt }]
+        })
+      });
 
-  let data;
-  try {
-    data = await response.json();
-  } catch (jsonError) {
-    const rawText = await response.text();
-    await salvarLogErro("openrouter-response-not-json", jsonError, rawText);
-    throw new Error("A API do OpenRouter não retornou um JSON válido na camada HTTP.");
-  }
+      if (!response.ok) {
+        const errorData = await response.text().catch(() => "Sem detalhes");
+        if (response.status === 503 || response.status === 429 || response.status === 500 || response.status === 502) {
+          throw new Error(`Erro temporário no servidor (HTTP ${response.status})`);
+        }
+        throw new Error(`FATAL: Erro na API do OpenRouter (HTTP ${response.status}): ${errorData}`);
+      }
 
-  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-    await salvarLogErro("openrouter-empty-choices", "A resposta da API veio sem choices ou message", data);
-    throw new Error("Resposta vazia ou bloqueada pela OpenRouter. Verifique o limite de requisições gratuitas.");
-  }
+      const data = await response.json();
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        throw new Error("A API retornou uma resposta vazia ou bloqueada pelos filtros de segurança.");
+      }
 
-  try {
-    const rawText = data.choices[0].message.content;
-    return extrairEConverterJSON(rawText);
-  } catch (err) {
-    await salvarLogErro("openrouter-parse-error", err, data);
-    throw err;
+      const rawText = data.choices[0].message.content;
+      
+      // Mesma proteção para a OpenRouter. Se o texto foi interrompido (Unterminated String), 
+      // ele força uma re-execução.
+      return extrairEConverterJSON(rawText);
+
+    } catch (erro: any) {
+      ultimoErro = erro.message || String(erro);
+      tentativaAtual++;
+      
+      if (ultimoErro.startsWith("FATAL:")) {
+        await salvarLogErro("openrouter-erro-fatal", erro);
+        throw new Error(ultimoErro.replace("FATAL: ", ""));
+      }
+
+      if (tentativaAtual >= MAX_TENTATIVAS) {
+        await salvarLogErro("openrouter-falha-limite", erro);
+        throw new Error(`O sistema tentou ${MAX_TENTATIVAS} vezes, mas a inteligência artificial não conseguiu concluir o texto corretamente. Por favor, tente novamente.\nÚltimo erro: ${ultimoErro}`);
+      }
+
+      await new Promise(r => setTimeout(r, tentativaAtual * 2000));
+    }
   }
 }

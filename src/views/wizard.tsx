@@ -7,6 +7,7 @@ import Step4 from "./steps/step4";
 import Step5 from "./steps/step5";
 import { mapearDadosWizard } from "../utils/mapearDados";
 import { processarDadosIA } from "../providers/services/geradorIA";
+import { obterMelhorModelo } from "../providers/llm";
 import ConfigIA from "../components/configIA";
 import PromptModal from "../components/promptModal";
 import { ThemeContext } from "../context/ThemeContext";
@@ -125,14 +126,17 @@ export default function Wizard() {
       
       const meeppExclusivo = dados.meepp === "SIM";
 
-      setStatusTexto("A gerar Documento de Formalização de Demanda (DFD)...");
-      const dadosIaDfd = await processarDadosIA(dadosMapeados, chaveApi, provedor, meeppExclusivo, "DFD");
+      setStatusTexto("A identificar a melhor inteligência artificial disponível para a sua conta...");
+      const modeloEscolhido = await obterMelhorModelo(provedor, chaveApi);
 
-      setStatusTexto("A estruturar o Estudo Técnico Preliminar (ETP)...");
-      const dadosIaEtp = await processarDadosIA(dadosMapeados, chaveApi, provedor, meeppExclusivo, "ETP");
+      setStatusTexto(`A gerar Documento de Formalização de Demanda (DFD) via ${modeloEscolhido}...`);
+      const dadosIaDfd = await processarDadosIA(dadosMapeados, chaveApi, provedor, meeppExclusivo, "DFD", modeloEscolhido);
 
-      setStatusTexto("A compor o Termo de Referência (TR)...");
-      const dadosIaTr = await processarDadosIA(dadosMapeados, chaveApi, provedor, meeppExclusivo, "TR");
+      setStatusTexto(`A estruturar o Estudo Técnico Preliminar (ETP) via ${modeloEscolhido}...`);
+      const dadosIaEtp = await processarDadosIA(dadosMapeados, chaveApi, provedor, meeppExclusivo, "ETP", modeloEscolhido);
+
+      setStatusTexto(`A compor o Termo de Referência (TR) via ${modeloEscolhido}...`);
+      const dadosIaTr = await processarDadosIA(dadosMapeados, chaveApi, provedor, meeppExclusivo, "TR", modeloEscolhido);
 
       const dadosIaFinais = { ...dadosIaDfd, ...dadosIaEtp, ...dadosIaTr };
 

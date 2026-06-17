@@ -10,7 +10,7 @@ else:
     EXECUTABLE_DIR = BASE_DIR
 
 MODEL_OPENROUTER = "openrouter/free"
-MODEL_GEMINI = "gemini-2.5-flash"
+MODEL_GEMINI = "gemini-3.5-flash"
 
 PROVEDORES_IA = {
     "openrouter": "OpenRouter",

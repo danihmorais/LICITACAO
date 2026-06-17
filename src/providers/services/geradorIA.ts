@@ -212,16 +212,17 @@ ${diretrizExecucao}`;
 export async function processarDadosIA(
     dadosUsuario: Record<string, string>, 
     apiKey: string, 
-    provider: "gemini" | "openrouter", 
+    provider: string, 
     meeppExclusivo: boolean, 
-    etapa: string
+    etapa: string,
+    modelo: string
 ): Promise<Record<string, string>> {
     const prompt = construirPrompt(dadosUsuario, meeppExclusivo, etapa);
 
     if (provider === "openrouter") {
-        return await gerarTextoOpenRouter(prompt, apiKey);
+        return await gerarTextoOpenRouter(prompt, apiKey, modelo);
     } else if (provider === "gemini") {
-        return await gerarTextoGemini(prompt, apiKey);
+        return await gerarTextoGemini(prompt, apiKey, modelo);
     } else {
         throw new Error(`Provedor IA não suportado: ${provider}`);
     }
