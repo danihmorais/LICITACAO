@@ -23,8 +23,66 @@ async function salvarLogErro(prefixo: string, erro: any, dadosCrus: any = null) 
 
     await writeTextFile(filename, conteudo, { baseDir: BaseDirectory.AppData });
     console.log(`Log de erro salvo em: AppData/logs/${filename}`);
-  } catch (e) {
-    console.error("Falha crítica ao tentar salvar log de erro no disco:", e);
+  } catch (e) {}
+}
+
+function sanitizarJSON(texto: string): string {
+  let inString = false;
+  let isEscaped = false;
+  let result = '';
+
+  for (let i = 0; i < texto.length; i++) {
+    const char = texto[i];
+
+    if (char === '"' && !isEscaped) {
+      inString = !inString;
+      result += char;
+    } else if (char === '\\' && !isEscaped) {
+      isEscaped = true;
+      result += char;
+    } else {
+      if (inString) {
+        if (char === '\n') {
+          result += '\\n';
+        } else if (char === '\r') {
+        } else if (char === '\t') {
+          result += '\\t';
+        } else {
+          result += char;
+        }
+      } else {
+        result += char;
+      }
+      isEscaped = false;
+    }
+  }
+  return result;
+}
+
+function extrairEConverterJSON(rawText: string): any {
+  let texto = rawText.trim();
+  const inicio = texto.indexOf('{');
+  const fim = texto.lastIndexOf('}');
+  
+  if (inicio !== -1 && fim !== -1) {
+    texto = texto.substring(inicio, fim + 1);
+  }
+  
+  try {
+    return JSON.parse(texto);
+  } catch (e1) {
+    try {
+      let corrigido = texto.replace(/,\s*([\}\]])/g, '$1');
+      return JSON.parse(corrigido);
+    } catch (e2) {
+      try {
+        let sanitizado = sanitizarJSON(texto);
+        sanitizado = sanitizado.replace(/,\s*([\}\]])/g, '$1');
+        return JSON.parse(sanitizado);
+      } catch (e3) {
+        throw new Error(`Falha crítica de parse no JSON. Erro: ${e3 instanceof Error ? e3.message : e3}\n\nRaw Text: ${rawText.substring(0, 500)}...`);
+      }
+    }
   }
 }
 
@@ -33,14 +91,10 @@ export async function validarChaveGemini(apiKey: string): Promise<boolean> {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: "teste" }] }],
-        generationConfig: {
-          maxOutputTokens: 1
-        }
+        generationConfig: { maxOutputTokens: 1 }
       })
     });
     
@@ -48,7 +102,6 @@ export async function validarChaveGemini(apiKey: string): Promise<boolean> {
       const errText = await response.text();
       await salvarLogErro("validacao-gemini", `HTTP ${response.status}`, errText);
     }
-    
     return response.ok;
   } catch (error) {
     await salvarLogErro("excecao-validacao-gemini", error);
@@ -76,7 +129,6 @@ export async function validarChaveOpenRouter(apiKey: string): Promise<boolean> {
       const errText = await response.text();
       await salvarLogErro("validacao-openrouter", `HTTP ${response.status}`, errText);
     }
-    
     return response.ok;
   } catch (error) {
     await salvarLogErro("excecao-validacao-openrouter", error);
@@ -91,9 +143,7 @@ export async function gerarTextoGemini(prompt: string, apiKey: string, model: st
   try {
     response = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
@@ -123,21 +173,12 @@ export async function gerarTextoGemini(prompt: string, apiKey: string, model: st
     throw new Error("A API do Gemini não retornou um JSON válido na camada HTTP.");
   }
   
-  let rawText = "";
   try {
-    rawText = data.candidates[0].content.parts[0].text;
-    let textoFinal = rawText;
-    const inicioJSON = textoFinal.indexOf('{');
-    const fimJSON = textoFinal.lastIndexOf('}');
-    
-    if (inicioJSON !== -1 && fimJSON !== -1) {
-      textoFinal = textoFinal.substring(inicioJSON, fimJSON + 1);
-    }
-    
-    return JSON.parse(textoFinal);
+    const rawText = data.candidates[0].content.parts[0].text;
+    return extrairEConverterJSON(rawText);
   } catch (err) {
-    await salvarLogErro("gemini-parse-error", err, rawText || data);
-    throw new Error("Resposta inesperada da API do Gemini. Estrutura de dados ou JSON inválidos.");
+    await salvarLogErro("gemini-parse-error", err, data);
+    throw err;
   }
 }
 
@@ -156,6 +197,7 @@ export async function gerarTextoOpenRouter(prompt: string, apiKey: string, model
         model: model,
         temperature: 0.3,
         max_tokens: 8000,
+        response_format: { type: "json_object" },
         messages: [{ role: "user", content: prompt }]
       })
     });
@@ -184,20 +226,11 @@ export async function gerarTextoOpenRouter(prompt: string, apiKey: string, model
     throw new Error("Resposta vazia ou bloqueada pela OpenRouter. Verifique o limite de requisições gratuitas.");
   }
 
-  let rawText = "";
   try {
-    rawText = data.choices[0].message.content;
-    let textoFinal = rawText;
-    const inicioJSON = textoFinal.indexOf('{');
-    const fimJSON = textoFinal.lastIndexOf('}');
-    
-    if (inicioJSON !== -1 && fimJSON !== -1) {
-      textoFinal = textoFinal.substring(inicioJSON, fimJSON + 1);
-    }
-    
-    return JSON.parse(textoFinal);
+    const rawText = data.choices[0].message.content;
+    return extrairEConverterJSON(rawText);
   } catch (err) {
-    await salvarLogErro("openrouter-parse-error", err, rawText || data);
-    throw new Error("Resposta inesperada da API do OpenRouter. Estrutura de dados ou JSON inválidos.");
+    await salvarLogErro("openrouter-parse-error", err, data);
+    throw err;
   }
 }

@@ -42,7 +42,7 @@ export default function PromptModal({ isOpen, onClose, onConfirm }: PromptModalP
             onClick={handleCancelar}
             style={{ width: "110px", height: "40px", borderRadius: "10px", border: "2px solid var(--border)", background: "transparent", color: "var(--text-main)", fontWeight: "bold", fontSize: "13px", cursor: "pointer" }}
           >
-            Ignorar
+            Cancelar
           </button>
           <button 
             onClick={handleConfirmar}

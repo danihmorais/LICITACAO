@@ -201,6 +201,51 @@ async fn verificar_status_apis(state: State<'_, AppState>) -> Result<StatusApis,
     Ok(StatusApis { gemini, openrouter })
 }
 
+#[tauri::command]
+fn abrir_pasta_documentos() -> Result<(), String> {
+    let mut alvo = None;
+
+    if let Ok(dir) = std::env::current_dir() {
+        let p = dir.join("Documentos_Gerados");
+        if p.exists() {
+            alvo = Some(p);
+        }
+    }
+
+    if alvo.is_none() {
+        if let Ok(exe) = std::env::current_exe() {
+            if let Some(parent) = exe.parent() {
+                let p = parent.join("Documentos_Gerados");
+                if p.exists() {
+                    alvo = Some(p);
+                }
+            }
+        }
+    }
+
+    let pasta = alvo.ok_or_else(|| String::from("A pasta 'Documentos_Gerados' ainda não existe. Confeccione os documentos primeiro."))?;
+
+    #[cfg(target_os = "windows")]
+    std::process::Command::new("explorer")
+        .arg(&pasta)
+        .spawn()
+        .map_err(|e| e.to_string())?;
+
+    #[cfg(target_os = "macos")]
+    std::process::Command::new("open")
+        .arg(&pasta)
+        .spawn()
+        .map_err(|e| e.to_string())?;
+
+    #[cfg(target_os = "linux")]
+    std::process::Command::new("xdg-open")
+        .arg(&pasta)
+        .spawn()
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let http_client = reqwest::Client::builder()
@@ -226,30 +271,4 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-#[tauri::command]
-fn abrir_pasta_documentos() -> Result<(), String> {
-    let exe_dir = std::env::current_exe()
-        .map_err(|e| e.to_string())?
-        .parent()
-        .ok_or("Não foi possível localizar a pasta do executável")?
-        .to_path_buf();
-
-    let pasta = exe_dir.join("Documentos_Gerados");
-
-    if !pasta.exists() {
-        return Err(format!(
-            "Pasta não encontrada: {}",
-            pasta.display()
-        ));
-    }
-
-    #[cfg(target_os = "windows")]
-    std::process::Command::new("explorer")
-        .arg(&pasta)
-        .spawn()
-        .map_err(|e| e.to_string())?;
-
-    Ok(())
 }
