@@ -5,7 +5,7 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "dialog:allow-open",
+    "dialog:default",
     "fs:allow-read-file",
     "fs:allow-read-dir",
     "fs:allow-write-file",

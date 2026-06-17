@@ -21,11 +21,11 @@ const styles = {
   errorText: { color: "var(--btn-danger)", fontSize: "12px", display: "block", marginTop: "4px" },
   asterisk: { color: "var(--btn-danger)" },
   counterWrapper: { display: "flex", alignItems: "center", gap: "8px" },
-  btn: { width: "40px", height: "40px", borderRadius: "var(--radius)", background: "var(--bg-subtle)", border: "1px solid var(--border)", fontSize: "18px", color: "var(--text-main)", display: "flex", alignItems: "center", justifyContent: "center" },
+  btn: { width: "40px", height: "40px", borderRadius: "var(--radius)", background: "var(--bg-subtle)", border: "1px solid var(--border)", fontSize: "18px", color: "var(--text-main)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" },
   counterInput: { width: "60px", height: "40px", textAlign: "center" as const, borderRadius: "var(--radius)", borderColor: "var(--input-border)", fontSize: "16px", fontWeight: "600" as const },
   select: { height: "40px", padding: "0 12px", borderRadius: "var(--radius)", borderColor: "var(--input-border)", fontSize: "14px", marginLeft: "8px" },
   attachWrapper: { display: "flex", gap: "16px", alignItems: "flex-start" },
-  attachBtn: (hasImg: boolean) => ({ padding: "0 24px", height: "44px", background: hasImg ? "var(--btn-success)" : "var(--btn-primary)", color: "var(--bg-panel)", border: "none", borderRadius: "var(--radius-lg)", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center" })
+  attachBtn: (hasImg: boolean) => ({ padding: "0 24px", height: "44px", background: hasImg ? "var(--btn-success)" : "var(--btn-primary)", color: "var(--bg-panel)", border: "none", borderRadius: "var(--radius-lg)", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" })
 };
 
 const RadioOption = ({ label, value, checked, onChange }: any) => (
@@ -53,7 +53,8 @@ const JustificationBox = ({ label, value, onChange, errorMsg }: any) => {
 };
 
 export default function Step5({ dados, atualizarDados }: any) {
-  const handleAnexarImagem = async () => {
+  const handleAnexarImagem = async (e: React.MouseEvent) => {
+    e.preventDefault();
     try {
       const selected = await open({
         filters: [{ name: 'Imagens', extensions: ['png', 'jpg', 'jpeg'] }]
@@ -66,13 +67,15 @@ export default function Step5({ dados, atualizarDados }: any) {
     }
   };
 
-  const decrementarVigencia = () => {
+  const decrementarVigencia = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (dados.vigenciaNum > 1) {
       atualizarDados({ vigenciaNum: dados.vigenciaNum - 1 });
     }
   };
 
-  const incrementarVigencia = () => {
+  const incrementarVigencia = (e: React.MouseEvent) => {
+    e.preventDefault();
     atualizarDados({ vigenciaNum: dados.vigenciaNum + 1 });
   };
 
@@ -185,14 +188,14 @@ export default function Step5({ dados, atualizarDados }: any) {
       <div style={styles.sectionGroup}>
         <h2 style={styles.title}>Vigência do Contrato/Ata (Máximo 1 ano)</h2>
         <div style={styles.counterWrapper}>
-          <button onClick={decrementarVigencia} style={styles.btn}>-</button>
+          <button type="button" onClick={decrementarVigencia} style={styles.btn}>-</button>
           <input 
             type="text" 
             value={dados.vigenciaNum} 
             readOnly 
             style={styles.counterInput} 
           />
-          <button onClick={incrementarVigencia} style={styles.btn}>+</button>
+          <button type="button" onClick={incrementarVigencia} style={styles.btn}>+</button>
           <select 
             value={dados.vigenciaUnidade} 
             onChange={(e) => atualizarDados({ vigenciaUnidade: e.target.value })}
@@ -218,6 +221,7 @@ export default function Step5({ dados, atualizarDados }: any) {
             style={styles.textareaLarge(faltaDotacao)}
           />
           <button 
+            type="button"
             onClick={handleAnexarImagem} 
             style={styles.attachBtn(!!dados.caminhoImagemDotacao)}
           >
