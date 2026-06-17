@@ -6,6 +6,8 @@
     "core:default",
     "opener:default",
     "dialog:default",
+    "dialog:allow-open",
+    "dialog:allow-save",
     "fs:allow-read-file",
     "fs:allow-read-dir",
     "fs:allow-write-file",

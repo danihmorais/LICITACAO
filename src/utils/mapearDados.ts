@@ -3,6 +3,18 @@ export const mapearDadosWizard = (dados: any) => {
   const totalItens = itens.reduce((acc: number, i: any) => acc + (Number(i.qtd || 0) * Number(i.valor || 0)), 0);
   const valorEstimadoFormatado = totalItens.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   
+  let contatosStr = "";
+  if (dados.contatosSecretarias && typeof dados.contatosSecretarias === 'object') {
+    const partes = [];
+    for (const [sec, contatos] of Object.entries(dados.contatosSecretarias)) {
+      if (Array.isArray(contatos) && contatos.length > 0) {
+        const listaContatos = contatos.map((c: any) => [c.email, c.tel].filter(Boolean).join(" - ")).join(", ");
+        partes.push(`${sec} (${listaContatos})`);
+      }
+    }
+    contatosStr = partes.join(" | ");
+  }
+
   return {
     "{{OBJETO}}": dados.objeto || "",
     "{{NECESSIDADE}}": dados.necessidade || "",
@@ -23,8 +35,8 @@ export const mapearDadosWizard = (dados: any) => {
     "{{MOTIVO_CRITERIO}}": dados.motivoCriterio || "",
     "{{MODALIDADE}}": dados.modalidade || "PREGAO_ELETRONICO",
     "{{MOTIVO_MODALIDADE}}": dados.motivoModalidade || "",
-    "{{SECRETARIAS}}": dados.secretarias ? dados.secretarias.join(", ") : "",
-    "{{CONTATOS_SECRETARIAS}}": dados.contatosSecretarias ? dados.contatosSecretarias.join(", ") : "",
+    "{{SECRETARIAS}}": Array.isArray(dados.secretarias) ? dados.secretarias.join(", ") : "",
+    "{{CONTATOS_SECRETARIAS}}": contatosStr,
     "{{VIGENCIA}}": `${dados.vigenciaNum || 1} ${dados.vigenciaUnidade || 'Meses'}`,
     "{{DOTACAO}}": dados.dotacao || "",
     "{{CAMINHO_IMAGEM_DOTACAO}}": dados.caminhoImagemDotacao ? `__IMG__${dados.caminhoImagemDotacao}` : "",

@@ -57,13 +57,17 @@ export default function Step5({ dados, atualizarDados }: any) {
     e.preventDefault();
     try {
       const selected = await open({
+        multiple: false,
+        directory: false,
+        title: "Selecione a imagem da dotação",
         filters: [{ name: 'Imagens', extensions: ['png', 'jpg', 'jpeg'] }]
       });
-      if (selected && !Array.isArray(selected)) {
-        atualizarDados({ caminhoImagemDotacao: selected });
+      if (selected) {
+        const caminhoFinal = Array.isArray(selected) ? selected[0] : selected;
+        atualizarDados({ caminhoImagemDotacao: caminhoFinal });
       }
-    } catch (err) {
-      alert("Erro ao selecionar imagem: " + err);
+    } catch (err: any) {
+      alert("Erro ao selecionar imagem: " + String(err));
     }
   };
 
